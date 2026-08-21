@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#b30c14">
+  <title>Clube Nutriforma</title>
+  <style>
+    :root {
+      --nutri-red: #b30c14;
+      --nutri-black: #111111;
+      --nutri-bg-light: #f4f4f4;
+      --nutri-shadow: rgba(0, 0, 0, 0.12);
+      --nutri-white: #ffffff;
+      --nutri-gray: #777777;
+      --base-font: Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--base-font);
+      background: var(--nutri-bg-light);
+      color: var(--nutri-black);
+      overflow-x: hidden;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: auto;
+      min-height: 100vh;
+      padding-bottom: 75px;
+    }
+
+    /* Topo visual */
+    .top {
+      background: linear-gradient(145deg, #181818, #050505);
+      color: var(--nutri-white);
+      padding: 25px 20px 30px;
+      border-radius: 0 0 32px 32px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .brand-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    /* Logo em CSS puro */
+    .brand-logo {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: var(--nutri-white);
+      text-transform: uppercase;
+    }
+
+    .brand-logo span {
+      color: var(--nutri-red);
+    }
+
+    .brand-tag {
+      display: block;
+      font-size: 8px;
+      letter-spacing: 3px;
+      color: #aaa;
+      margin-top: -2px;
+    }
+
+    .profile-link {
+      background: rgba(255, 255, 255, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    /* Saudação */
+    .greeting {
+      margin-bottom: 15px;
+    }
+
+    .greeting .hello {
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    .greeting h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 4px 0 0;
+    }
+
+    /* Pontuação e Nível */
+    .pts-info {
+      text-align: center;
+      margin-top: 15px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .pts-badge {
+      display: inline-block;
+      background: var(--nutri-red);
+      color: var(--nutri-white);
+      padding: 5px 16px;
+      border-radius: 20px;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .pts-value {
+      font-size: 32px;
+      font-weight: 900;
+      margin: 8px 0;
+    }
+
+    .next-level {
+      font-size: 12px;
+      color: #bbb;
+    }
+
+    /* Barra de Progresso */
+    .bar-container {
+      margin: 12px 0 6px;
+    }
+
+    .bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      background: var(--nutri-white);
+      transition: width 0.3s ease;
+    }
+
+    /* Conteúdo Principal */
+    .main {
+      padding: 18px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 16px 0 12px;
+    }
+
+    .title-row h2 {
+      font-size: 17px;
+      font-weight: 800;
+      margin: 0;
+      text-transform: uppercase;
+      color: var(--nutri-black);
+    }
+
+    .link-action {
+      border: 0;
+      background: none;
+      color: var(--nutri-red);
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .nutri-card {
+      background: var(--nutri-white);
+      border: 1px solid #e5e5e5;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 4px 15px var(--nutri-shadow);
+    }
+
+    .hero-section {
+      background: linear-gradient(135deg, #111, #222);
+      color: var(--nutri-white);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 6px 20px var(--nutri-shadow);
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: var(--nutri-red);
+      color: var(--nutri-white);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-section h3 {
+      font-size: 18px;
+      margin: 10px 0 6px;
+      font-weight: 800;
+    }
+
+    .hero-section p {
+      font-size: 12px;
+      line-height: 1.5;
+      color: #ccc;
+      margin-bottom: 14px;
+    }
+
+    .nutri-btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-weight: 900;
+      font-size: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nutri-btn.primary {
+      background: var(--nutri-red);
+      color: var(--nutri-white);
+    }
+
+    .nutri-btn.light {
+      background: var(--nutri-white);
+      color: var(--nutri-red);
+    }
+
+    .nutri-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .action-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: #fff0f1;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+
+    .nutri-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 8px 0 4px;
+    }
+
+    .small-text {
+      font-size: 11px;
+      color: var(--nutri-gray);
+      line-height: 1.4;
+    }
+
+    .points-added {
+      color: var(--nutri-red);
+      font-weight: 900;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    /* Navegação */
+    .nav-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(480px, 100%);
+      background: #111;
+      border-top: 1px solid #222;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      z-index: 5;
+    }
+
+    .nav-btn {
+      border: 0;
+      background: transparent;
+      padding: 12px 3px;
+      color: #777;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-btn b {
+      font-size: 18px;
+      margin-bottom: 3px;
+    }
+
+    .nav-btn.on {
+      color: var(--nutri-red);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      align-items: flex-end;
+      z-index: 10;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: var(--nutri-white);
+      width: min(480px, 100%);
+      margin: auto 0 0;
+      border-radius: 24px 24px 0 0;
+      padding: 22px;
+      position: relative;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      border: 0;
+      background: none;
+      font-size: 22px;
+      color: var(--nutri-gray);
+      cursor: pointer;
+    }
+
+    .nutri-notice {
+      background: #fff6d8;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 11px;
+      line-height: 1.4;
+      margin-top: 12px;
+      color: #6a5700;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- TELA: INÍCIO -->
+    <section id="home" class="screen active">
+      <header class="top">
+        <div class="brand-header">
+          <div>
+            <div class="brand-logo">NUTRI<span>FORMA</span></div>
+            <span class="brand-tag">CLUBE DE BENEFÍCIOS</span>
+          </div>
+          <a href="#" class="profile-link" onclick="go('profile')">👤</a>
+        </div>
+
+        <div class="greeting">
+          <div class="hello">Olá, Evelim 👋</div>
+          <h1>Sua jornada continua aqui.</h1>
+        </div>
+
+        <div class="pts-info">
+          <span class="pts-badge" id="level">FIT</span>
+          <div class="pts-value"><span id="pts">180</span> pts</div>
+          <div class="bar-container">
+            <div class="bar"><i id="prog" style="width:72%"></i></div>
+          </div>
+          <div class="next-level" id="next">70 pts para PRIME</div>
+        </div>
+      </header>
+
+      <main class="main">
+        <div class="title-row">
+          <h2>Missão da semana 🔥</h2>
+          <button class="link-action" onclick="modal('mission')">Ver</button>
+        </div>
+
+        <div class="hero-section">
+          <span class="hero-badge">DESAFIO • +30 PTS BÔNUS</span>
+          <h3>Complete 3 ações</h3>
+          <p>Faça uma compra, avalie sua experiência e marque a Nutriforma nos Stories.</p>
+          <button class="nutri-btn light" onclick="modal('mission')">Começar missão</button>
+        </div>
+
+        <div class="title-row" style="margin-top:22px">
+          <h2>Ganhe pontos</h2>
+          <button class="link-action" onclick="go('earn')">Ver tudo</button>
+        </div>
+        <div class="nutri-grid" id="quick"></div>
+
+        <div class="title-row" style="margin-top:22px">
+          <h2>Recompensa em Destaque</h2>
+          <button class="link-action" onclick="go('rewards')">Ver todas</button>
+        </div>
+        <div class="nutri-card">
+          <div class="action-icon">🎁</div>
+          <h3>R$ 10 OFF</h3>
+          <div class="small-text">Resgate com 100 pontos.</div>
+          <button class="nutri-btn primary" style="margin-top:10px; width:100%" onclick="redeem()">Resgatar</button>
+        </div>
+      </main>
+    </section>
+
+    <!-- TELA: GANHAR PONTOS -->
+    <section id="earn" class="screen">
+      <header class="top">
+        <div class="brand-header">
+          <div>
+            <div class="brand-logo">NUTRI<span>FORMA</span></div>
+            <span class="brand-tag">CLUBE DE BENEFÍCIOS</span>
+          </div>
+        </div>
+        <div class="greeting" style="margin-bottom:0">
+          <h1>Ganhe pontos</h1>
+          <div class="hello" style="margin-top:4px">Cada interação aproxima você do próximo nível.</div>
+        </div>
+      </header>
+      <main class="main">
+        <div class="nutri-grid" id="all"></div>
+        <div class="nutri-notice">Algumas ações podem exigir validação pela equipe Nutriforma.</div>
+      </main>
+    </section>
+
+    <!-- TELA: RECOMPENSAS -->
+    <section id="rewards" class="screen">
+      <header class="top">
+        <div class="brand-header">
+          <div>
+            <div class="brand-logo">NUTRI<span>FORMA</span></div>
+            <span class="brand-tag">CLUBE DE BENEFÍCIOS</span>
+          </div>
+        </div>
+        <div class="greeting" style="margin-bottom:0">
+          <h1>Recompensas</h1>
+          <div class="hello" style="margin-top:4px">Troque seus pontos por benefícios exclusivos.</div>
+        </div>
+      </header>
+      <main class="main" id="rewardsList"></main>
+    </section>
+
+    <!-- TELA: PERFIL -->
+    <section id="profile" class="screen">
+      <header class="top">
+        <div class="brand-header">
+          <div>
+            <div class="brand-logo">NUTRI<span>FORMA</span></div>
+            <span class="brand-tag">CLUBE DE BENEFÍCIOS</span>
+          </div>
+        </div>
+        <div class="greeting" style="margin-bottom:0">
+          <h1>Meu Perfil</h1>
+        </div>
+      </header>
+      <main class="main">
+        <div class="nutri-card">
+          <div class="action-icon" style="background:#eee; font-weight:700; color:#555">E</div>
+          <h3>Evelim Esquetini</h3>
+          <span class="pts-badge" id="pl">FIT</span>
+          <p class="small-text" style="margin-top:6px">Cliente desde 2026</p>
+        </div>
+
+        <div class="title-row" style="margin-top:20px">
+          <h2>Seu Progresso</h2>
+        </div>
+        <div class="nutri-card">
+          <div class="pts-value" style="font-size:26px; color:#111;"><span id="pp">180</span> pontos</div>
+          <div class="bar-container">
+            <div class="bar" style="background:#eee"><i id="pprog" style="background:var(--nutri-red); width:72%"></i></div>
+          </div>
+          <p class="small-text" id="pn" style="margin-top:8px">Faltam 70 pontos para PRIME.</p>
+        </div>
+
+        <div class="title-row" style="margin-top:20px">
+          <h2>Indicação</h2>
+        </div>
+        <div class="nutri-card">
+          <b>EVE10</b>
+          <p class="small-text" style="margin-top:4px">Compartilhe seu código e ganhe pontos quando seu amigo fizer a primeira compra.</p>
+          <button class="nutri-btn primary" onclick="copy()" style="margin-top:10px; width:100%">Copiar código</button>
+        </div>
+      </main>
+    </section>
+
+    <!-- NAVEGAÇÃO INFERIOR -->
+    <nav class="nav-bottom">
+      <button class="nav-btn on" onclick="go('home')"><b>⌂</b>Início</button>
+      <button class="nav-btn" onclick="go('earn')"><b>＋</b>Ganhar</button>
+      <button class="nav-btn" onclick="go('rewards')"><b>🎁</b>Prêmios</button>
+      <button class="nav-btn" onclick="go('profile')"><b>◉</b>Perfil</button>
+    </nav>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-sheet">
+      <button class="close-modal" onclick="closeM()">&times;</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    let pts = 180;
+
+    const A = [
+      ['🛒', 'Fazer uma compra', 10],
+      ['👥', 'Indicar um amigo', 30],
+      ['🎉', 'Amigo faz a 1ª compra', 50],
+      ['⭐', 'Avaliar uma compra', 10],
+      ['📸', 'Marcar @Nutriforma', 15],
+      ['🎂', 'Aniversário', 30],
+      ['🔥', 'Participar de campanha', 20],
+      ['💬', 'Responder pesquisa', 10]
+    ];
+
+    const R = [
+      [100, 'R$ 10 OFF'],
+      [150, 'Brinde Nutriforma'],
+      [250, 'R$ 20 OFF'],
+      [400, 'Kit exclusivo']
+    ];
+
+    function lv() {
+      return pts >= 250 ? 'PRIME' : pts >= 100 ? 'FIT' : 'START';
+    }
+
+    function card(a, i) {
+      return `<div class="nutri-card" onclick="action(${i})"><div class="action-icon">${a[0]}</div><h3>${a[1]}</h3><div class="points-added">+${a[2]} pts</div></div>`;
+    }
+
+    function render() {
+      let l = lv(),
+        n = l === 'START' ? 100 : l === 'FIT' ? 250 : null;
+
+      document.querySelector('#level').textContent = l;
+      document.querySelector('#pts').textContent = pts;
+      document.querySelector('#next').textContent = n ? (n - pts) + ' pts para ' + (n === 100 ? 'FIT' : 'PRIME') : 'Nível máximo alcançado';
+
+      let w = n ? Math.min(100, (pts - (l === 'START' ? 0 : 100)) / (n - (l === 'START' ? 0 : 100)) * 100) : 100;
+
+      document.querySelector('#prog').style.width = w + '%';
+      document.querySelector('#quick').innerHTML = A.slice(0, 4).map(card).join('');
+      document.querySelector('#all').innerHTML = A.map(card).join('');
+      document.querySelector('#pl').textContent = l;
+      document.querySelector('#pp').textContent = pts;
+      document.querySelector('#pprog').style.width = w + '%';
+      document.querySelector('#pn').textContent = n ? 'Faltam ' + (n - pts) + ' pontos para ' + (n === 100 ? 'FIT' : 'PRIME') + '.' : 'Você chegou ao nível PRIME!';
+
+      document.querySelector('#rewardsList').innerHTML = R.map(r =>
+        `<div class="nutri-card" style="margin-bottom:12px;opacity:${pts < r[0] ? .55 : 1}">
+          <div class="action-icon">🎁</div>
+          <h3>${r[1]}</h3>
+          <div class="small-text">${r[0]} pontos</div>
+          <button class="nutri-btn primary" style="margin-top:10px; width:100%" ${pts < r[0] ? 'disabled' : ''} onclick="redeemN(${r[0]},'${r[1]}')">${pts >= r[0] ? 'Resgatar' : 'Bloqueado'}</button>
+        </div>`
+      ).join('');
+    }
+
+    function action(i) {
+      let a = A[i];
+      modal(`<h2>${a[0]} ${a[1]}</h2><p class="small-text">No protótipo, este botão simula a validação da ação.</p><button class="nutri-btn primary" onclick="add(${a[2]},'${a[1]}')">Concluir +${a[2]} pts</button>`);
+    }
+
+    function add(n, name) {
+      pts += n;
+      render();
+      modal('<h2>🎉 Pontos adicionados!</h2><p class="small-text">Você ganhou <b>+' + n + ' pontos</b> por ' + name + '.</p><p class="small-text">Saldo: <b>' + pts + ' pts</b> • Nível: <b>' + lv() + '</b></p><button class="nutri-btn primary" onclick="closeM()">Continuar</button>');
+    }
+
+    function redeem() {
+      redeemN(100, 'R$ 10 OFF');
+    }
+
+    function redeemN(n, name) {
+      if (pts < n) {
+        modal('<h2>🔒 Ainda não</h2><p class="small-text">Faltam <b>' + (n - pts) + ' pontos</b> para ' + name + '.</p><button class="nutri-btn primary" onclick="closeM()">Continuar</button>');
+        return;
+      }
+      pts -= n;
+      render();
+      modal('<h2>🎁 Resgatado!</h2><p class="small-text">' + name + ' foi adicionada à sua carteira de benefícios.</p><button class="nutri-btn primary" onclick="closeM()">Perfeito!</button>');
+    }
+
+    function modal(t) {
+      document.querySelector('#modal-body').innerHTML = t === 'mission' ? '<h2>🔥 Missão da semana</h2><p class="small-text">Complete 3 ações para ganhar <b>+30 pontos bônus</b>.</p><p class="small-text">🛒 Compra • ⭐ Avaliação • 📸 Marcação</p><button class="nutri-btn primary" onclick="closeM()">Entendi</button>' : t;
+      document.querySelector('#modal').classList.add('show');
+    }
+
+    function closeM() {
+      document.querySelector('#modal').classList.remove('show');
+    }
+
+    function go(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.querySelector('#' + id).classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('on', ['home', 'earn', 'rewards', 'profile'][i] === id));
+      scrollTo(0, 0);
+    }
+
+    function copy() {
+      navigator.clipboard?.writeText('EVE10');
+      modal('<h2>📋 Copiado!</h2><p class="small-text">Código <b>EVE10</b> pronto para compartilhar.</p><button class="nutri-btn primary" onclick="closeM()">Fechar</button>');
+    }
+
+    render();
+  </script>
+</body>
+</html>
