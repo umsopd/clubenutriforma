@@ -51,7 +51,7 @@
       margin-bottom: 20px;
     }
 
-    /* Logo em CSS puro */
+    /* Logo em CSS */
     .brand-logo {
       font-size: 18px;
       font-weight: 900;
@@ -221,6 +221,9 @@
     }
 
     .nutri-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border: 0;
       border-radius: 12px;
       padding: 11px 16px;
@@ -229,6 +232,8 @@
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      text-decoration: none;
+      box-sizing: border-box;
     }
 
     .nutri-btn.primary {
@@ -239,6 +244,17 @@
     .nutri-btn.light {
       background: var(--nutri-white);
       color: var(--nutri-red);
+    }
+
+    .nutri-btn.outline {
+      background: transparent;
+      border: 1px solid var(--nutri-red);
+      color: var(--nutri-red);
+    }
+
+    .nutri-btn.whatsapp {
+      background: #25d366;
+      color: #ffffff;
     }
 
     .nutri-grid {
@@ -274,6 +290,52 @@
       font-weight: 900;
       margin-top: 8px;
       font-size: 13px;
+    }
+
+    /* Formulários */
+    .form-group {
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #444;
+      margin-bottom: 4px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--nutri-red);
+    }
+
+    .profile-info-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      font-size: 12px;
+    }
+
+    .profile-info-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .profile-info-list li span {
+      color: var(--nutri-gray);
     }
 
     /* Navegação */
@@ -333,6 +395,8 @@
       border-radius: 24px 24px 0 0;
       padding: 22px;
       position: relative;
+      max-height: 85vh;
+      overflow-y: auto;
     }
 
     .close-modal {
@@ -379,7 +443,7 @@
         </div>
 
         <div class="greeting">
-          <div class="hello">Olá, Evelim 👋</div>
+          <div class="hello">Olá, <span class="user-first-name">Evelim</span> 👋</div>
           <h1>Sua jornada continua aqui.</h1>
         </div>
 
@@ -441,7 +505,7 @@
       </header>
       <main class="main">
         <div class="nutri-grid" id="all"></div>
-        <div class="nutri-notice">Algumas ações podem exigir validação pela equipe Nutriforma.</div>
+        <div class="nutri-notice">Algumas ações exigem validação pela equipe Nutriforma via WhatsApp ou sistema.</div>
       </main>
     </section>
 
@@ -477,10 +541,22 @@
       </header>
       <main class="main">
         <div class="nutri-card">
-          <div class="action-icon" style="background:#eee; font-weight:700; color:#555">E</div>
-          <h3>Evelim Esquetini</h3>
-          <span class="pts-badge" id="pl">FIT</span>
-          <p class="small-text" style="margin-top:6px">Cliente desde 2026</p>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h3 id="display-name" style="margin:0 0 4px; font-size:16px;">Evelim Esquetini</h3>
+              <span class="pts-badge" id="pl">FIT</span>
+            </div>
+            <button class="nutri-btn outline" style="padding:6px 12px; font-size:10px" onclick="openEditProfile()">Editar</button>
+          </div>
+
+          <ul class="profile-info-list">
+            <li><span>Nascimento:</span> <b id="display-dob">15/08/1995</b></li>
+            <li><span>CPF:</span> <b id="display-cpf">123.456.789-00</b></li>
+            <li><span>E-mail:</span> <b id="display-email">evelim@email.com</b></li>
+            <li><span>Telefone:</span> <b id="display-phone">(41) 99999-8888</b></li>
+            <li><span>Endereço:</span> <b id="display-address">Rua das Flores, 100 - Curitiba/PR</b></li>
+            <li><span>Objetivo:</span> <b id="display-goal">Hipertrofia / Massa Muscular</b></li>
+          </ul>
         </div>
 
         <div class="title-row" style="margin-top:20px">
@@ -495,7 +571,7 @@
         </div>
 
         <div class="title-row" style="margin-top:20px">
-          <h2>Indicação</h2>
+          <h2>Sua Indicação</h2>
         </div>
         <div class="nutri-card">
           <b>EVE10</b>
@@ -525,15 +601,30 @@
   <script>
     let pts = 180;
 
+    // Dados do Perfil do Usuário
+    let userProfile = {
+      name: 'Evelim Esquetini',
+      dob: '1995-08-15',
+      cpf: '123.456.789-00',
+      email: 'evelim@email.com',
+      phone: '(41) 99999-8888',
+      address: 'Rua das Flores, 100',
+      neighborhood: 'Centro',
+      city: 'Curitiba',
+      state: 'PR',
+      zip: '80000-000',
+      goal: 'Hipertrofia / Massa Muscular'
+    };
+
     const A = [
-      ['🛒', 'Fazer uma compra', 10],
-      ['👥', 'Indicar um amigo', 30],
-      ['🎉', 'Amigo faz a 1ª compra', 50],
-      ['⭐', 'Avaliar uma compra', 10],
-      ['📸', 'Marcar @Nutriforma', 15],
-      ['🎂', 'Aniversário', 30],
-      ['🔥', 'Participar de campanha', 20],
-      ['💬', 'Responder pesquisa', 10]
+      { id: 'buy', icon: '🛒', title: 'Fazer uma compra', pts: 10, desc: 'Ganhe pontos a cada pedido realizado.' },
+      { id: 'refer', icon: '👥', title: 'Indicar um amigo', pts: 30, desc: 'Envie seu cupom exclusivo para amigos.' },
+      { id: 'friend_buy', icon: '🎉', title: 'Amigo faz a 1ª compra', pts: 50, desc: 'Envie o comprovante da compra do amigo com seu cupom.' },
+      { id: 'review', icon: '⭐', title: 'Avaliar uma compra', pts: 10, desc: 'Envie sua opinião sobre nossos produtos.' },
+      { id: 'insta', icon: '📸', title: 'Marcar @Nutriforma', pts: 15, desc: 'Poste nos Stories usando nossos produtos.' },
+      { id: 'birthday', icon: '🎂', title: 'Aniversário', pts: 30, desc: 'Sua pontuação no mês do aniversário.' },
+      { id: 'promo', icon: '🔥', title: 'Participar de campanha', pts: 20, desc: 'Campanhas e desafios sazonais.' },
+      { id: 'survey', icon: '💬', title: 'Responder pesquisa', pts: 10, desc: 'Ajude a melhorar nossos serviços.' }
     ];
 
     const R = [
@@ -547,8 +638,12 @@
       return pts >= 250 ? 'PRIME' : pts >= 100 ? 'FIT' : 'START';
     }
 
-    function card(a, i) {
-      return `<div class="nutri-card" onclick="action(${i})"><div class="action-icon">${a[0]}</div><h3>${a[1]}</h3><div class="points-added">+${a[2]} pts</div></div>`;
+    function card(a) {
+      return `<div class="nutri-card" onclick="openActionModal('${a.id}')">
+                <div class="action-icon">${a.icon}</div>
+                <h3>${a.title}</h3>
+                <div class="points-added">+${a.pts} pts</div>
+              </div>`;
     }
 
     function render() {
@@ -569,6 +664,20 @@
       document.querySelector('#pprog').style.width = w + '%';
       document.querySelector('#pn').textContent = n ? 'Faltam ' + (n - pts) + ' pontos para ' + (n === 100 ? 'FIT' : 'PRIME') + '.' : 'Você chegou ao nível PRIME!';
 
+      // Renderizar Dados do Perfil
+      const firstName = userProfile.name.split(' ')[0] || 'Cliente';
+      document.querySelectorAll('.user-first-name').forEach(el => el.textContent = firstName);
+      document.querySelector('#display-name').textContent = userProfile.name;
+      
+      const dobFormatted = userProfile.dob ? userProfile.dob.split('-').reverse().join('/') : '-';
+      document.querySelector('#display-dob').textContent = dobFormatted;
+      document.querySelector('#display-cpf').textContent = userProfile.cpf;
+      document.querySelector('#display-email').textContent = userProfile.email;
+      document.querySelector('#display-phone').textContent = userProfile.phone;
+      document.querySelector('#display-address').textContent = `${userProfile.address} - ${userProfile.city}/${userProfile.state}`;
+      document.querySelector('#display-goal').textContent = userProfile.goal;
+
+      // Renderizar Recompensas
       document.querySelector('#rewardsList').innerHTML = R.map(r =>
         `<div class="nutri-card" style="margin-bottom:12px;opacity:${pts < r[0] ? .55 : 1}">
           <div class="action-icon">🎁</div>
@@ -579,15 +688,147 @@
       ).join('');
     }
 
-    function action(i) {
-      let a = A[i];
-      modal(`<h2>${a[0]} ${a[1]}</h2><p class="small-text">No protótipo, este botão simula a validação da ação.</p><button class="nutri-btn primary" onclick="add(${a[2]},'${a[1]}')">Concluir +${a[2]} pts</button>`);
+    // Abrir opções detalhadas de cada ação
+    function openActionModal(id) {
+      const item = A.find(a => a.id === id);
+      let html = `<h2>${item.icon} ${item.title}</h2><p class="small-text">${item.desc}</p>`;
+
+      if (id === 'buy') {
+        html += `
+          <p class="small-text"><b>Pontuação Automática:</b> Os pontos entram na sua conta assim que o pagamento do seu pedido for confirmado na loja ou no WhatsApp.</p>
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+            <a href="https://l.instagram.com/?u=https%3A%2F%2Fnutriforma11.lojavirtualnuvem.com.br%2F&e=AUC-xm9BvhZMuv57EcVQQBc6Gq8Fr2E_8d-wp_byDJPu5NcJ0bxrVQ10GUmc6DmpmgmIaazoHsfSKqe3LtN81_kp3M2unvjmU9fsYPU72DUTSPETO6_CN74bkSSiNinTLJyIOR8u-B4" target="_blank" class="nutri-btn primary" style="width:100%;">🌐 Comprar no Site</a>
+            <a href="https://l.instagram.com/?u=https%3A%2F%2Fwa.me%2F554188215348%3Ftext%3DOl%25C3%25A1%2520%25F0%259F%2591%258B%252C%2520vim%2520pelo%2520Instagram%2520da%2520Nutri%2520Forma%2520e%2520quero%2520saber%2520mais%2520sobre%2520suplementos&e=AUB8vG0ealTOuzTFD9wiSnsEXNI9_w3OicIUaLKxDCEc_SfCWXtIReQz1u0g0_ITcDKXUtfnDSFfklfUTUJyoKriwew1Lp6k8097ladDDrmrhSX0eN1Eitmalph72wFgA6iWRMCWdAw" target="_blank" class="nutri-btn whatsapp" style="width:100%;">💬 Comprar pelo WhatsApp</a>
+          </div>
+        `;
+      } else if (id === 'refer') {
+        html += `
+          <p class="small-text">Seu código exclusivo de indicação é: <b>EVE10</b></p>
+          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="copy();">Copiar e Compartilhar</button>
+        `;
+      } else if (id === 'friend_buy') {
+        html += `
+          <p class="small-text">Seu amigo comprou usando o código <b>EVE10</b>? Anexe o comprovante ou número do pedido dele abaixo para validação:</p>
+          <div class="form-group" style="margin-top:10px;">
+            <label>Número do Pedido ou Nome do Amigo</label>
+            <input type="text" id="friend-info" class="form-control" placeholder="Ex: Pedido #1234 ou João Silva">
+          </div>
+          <div class="form-group">
+            <label>Anexar Comprovante (Print/Foto)</label>
+            <input type="file" class="form-control" accept="image/*">
+          </div>
+          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="simulateSubmit('Comprovante de Compra do Amigo')">Enviar para Análise (+50 pts)</button>
+        `;
+      } else if (id === 'birthday') {
+        const dobFormatted = userProfile.dob ? userProfile.dob.split('-').reverse().join('/') : 'Não cadastrada';
+        html += `
+          <p class="small-text"><b>Data cadastrada:</b> ${dobFormatted}</p>
+          <p class="small-text">🎉 <b>Liberação Automática:</b> O sistema credita <b>+30 pts</b> automaticamente no 1º dia do seu mês de aniversário!</p>
+          <hr style="border:0; border-top:1px solid #eee; margin:12px 0;">
+          <p class="small-text">Sua data de nascimento precisa de confirmação? Anexe um documento oficial com foto (ex: CNH ou RG):</p>
+          <div class="form-group">
+            <input type="file" class="form-control" accept="image/*,.pdf">
+          </div>
+          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="simulateSubmit('Documento de Aniversário')">Enviar Documento</button>
+        `;
+      } else if (id === 'insta' || id === 'review') {
+        html += `
+          <p class="small-text">Anexe o print da sua publicação nos Stories ou da sua avaliação abaixo para enviarmos para a equipe:</p>
+          <div class="form-group" style="margin-top:10px;">
+            <label>Comprovante (Imagem)</label>
+            <input type="file" class="form-control" accept="image/*">
+          </div>
+          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="simulateSubmit('${item.title}')">Enviar Comprovante</button>
+        `;
+      } else if (id === 'survey') {
+        html += `
+          <p class="small-text">Responda nossa pesquisa rápida de satisfação para ganhar seus pontos.</p>
+          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="simulateSubmit('${item.title}')">Abrir Pesquisa</button>
+        `;
+      } else {
+        html += `
+          <p class="small-text">Ação sujeita a verificação no sistema.</p>
+          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Fechar</button>
+        `;
+      }
+
+      modal(html);
     }
 
-    function add(n, name) {
-      pts += n;
+    // Modal para editar dados do perfil
+    function openEditProfile() {
+      let html = `
+        <h2>✏️ Editar Perfil</h2>
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input type="text" id="edit-name" class="form-control" value="${userProfile.name}">
+        </div>
+        <div class="form-group">
+          <label>Data de Nascimento</label>
+          <input type="date" id="edit-dob" class="form-control" value="${userProfile.dob}">
+        </div>
+        <div class="form-group">
+          <label>CPF</label>
+          <input type="text" id="edit-cpf" class="form-control" value="${userProfile.cpf}">
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="edit-email" class="form-control" value="${userProfile.email}">
+        </div>
+        <div class="form-group">
+          <label>Celular / WhatsApp</label>
+          <input type="text" id="edit-phone" class="form-control" value="${userProfile.phone}">
+        </div>
+        <div class="form-group">
+          <label>Endereço (Rua e Nº)</label>
+          <input type="text" id="edit-address" class="form-control" value="${userProfile.address}">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group">
+            <label>Cidade</label>
+            <input type="text" id="edit-city" class="form-control" value="${userProfile.city}">
+          </div>
+          <div class="form-group">
+            <label>Estado (UF)</label>
+            <input type="text" id="edit-state" class="form-control" value="${userProfile.state}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Objetivo Principal</label>
+          <select id="edit-goal" class="form-control">
+            <option value="Hipertrofia / Massa Muscular" ${userProfile.goal.includes('Massa') ? 'selected' : ''}>Hipertrofia / Massa Muscular</option>
+            <option value="Emagrecimento / Definição" ${userProfile.goal.includes('Emagrecimento') ? 'selected' : ''}>Emagrecimento / Definição</option>
+            <option value="Saúde & Bem-Estar" ${userProfile.goal.includes('Saúde') ? 'selected' : ''}>Saúde & Bem-Estar</option>
+            <option value="Performance Esportiva" ${userProfile.goal.includes('Performance') ? 'selected' : ''}>Performance Esportiva</option>
+          </select>
+        </div>
+        <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="saveProfile()">Salvar Alterações</button>
+      `;
+      modal(html);
+    }
+
+    function saveProfile() {
+      userProfile.name = document.querySelector('#edit-name').value;
+      userProfile.dob = document.querySelector('#edit-dob').value;
+      userProfile.cpf = document.querySelector('#edit-cpf').value;
+      userProfile.email = document.querySelector('#edit-email').value;
+      userProfile.phone = document.querySelector('#edit-phone').value;
+      userProfile.address = document.querySelector('#edit-address').value;
+      userProfile.city = document.querySelector('#edit-city').value;
+      userProfile.state = document.querySelector('#edit-state').value;
+      userProfile.goal = document.querySelector('#edit-goal').value;
+
       render();
-      modal('<h2>🎉 Pontos adicionados!</h2><p class="small-text">Você ganhou <b>+' + n + ' pontos</b> por ' + name + '.</p><p class="small-text">Saldo: <b>' + pts + ' pts</b> • Nível: <b>' + lv() + '</b></p><button class="nutri-btn primary" onclick="closeM()">Continuar</button>');
+      modal('<h2>✅ Perfil Atualizado!</h2><p class="small-text">Suas informações foram salvas com sucesso.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok</button>');
+    }
+
+    function simulateSubmit(title) {
+      modal(`
+        <h2>📩 Solicitação enviada!</h2>
+        <p class="small-text">Recebemos seu arquivo/informação referente a <b>${title}</b>.</p>
+        <p class="small-text">Nossa equipe analisará em até 24h e os pontos serão liberados no seu saldo!</p>
+        <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok, entendi</button>
+      `);
     }
 
     function redeem() {
@@ -596,16 +837,16 @@
 
     function redeemN(n, name) {
       if (pts < n) {
-        modal('<h2>🔒 Ainda não</h2><p class="small-text">Faltam <b>' + (n - pts) + ' pontos</b> para ' + name + '.</p><button class="nutri-btn primary" onclick="closeM()">Continuar</button>');
+        modal('<h2>🔒 Saldo Insuficiente</h2><p class="small-text">Faltam <b>' + (n - pts) + ' pontos</b> para ' + name + '.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Continuar</button>');
         return;
       }
       pts -= n;
       render();
-      modal('<h2>🎁 Resgatado!</h2><p class="small-text">' + name + ' foi adicionada à sua carteira de benefícios.</p><button class="nutri-btn primary" onclick="closeM()">Perfeito!</button>');
+      modal('<h2>🎁 Resgatado!</h2><p class="small-text">' + name + ' foi adicionada à sua carteira de benefícios.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Perfeito!</button>');
     }
 
     function modal(t) {
-      document.querySelector('#modal-body').innerHTML = t === 'mission' ? '<h2>🔥 Missão da semana</h2><p class="small-text">Complete 3 ações para ganhar <b>+30 pontos bônus</b>.</p><p class="small-text">🛒 Compra • ⭐ Avaliação • 📸 Marcação</p><button class="nutri-btn primary" onclick="closeM()">Entendi</button>' : t;
+      document.querySelector('#modal-body').innerHTML = t === 'mission' ? '<h2>🔥 Missão da semana</h2><p class="small-text">Complete 3 ações para ganhar <b>+30 pontos bônus</b>.</p><p class="small-text">🛒 Compra • ⭐ Avaliação • 📸 Marcação</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Entendi</button>' : t;
       document.querySelector('#modal').classList.add('show');
     }
 
@@ -622,7 +863,7 @@
 
     function copy() {
       navigator.clipboard?.writeText('EVE10');
-      modal('<h2>📋 Copiado!</h2><p class="small-text">Código <b>EVE10</b> pronto para compartilhar.</p><button class="nutri-btn primary" onclick="closeM()">Fechar</button>');
+      modal('<h2>📋 Copiado!</h2><p class="small-text">Código <b>EVE10</b> pronto para compartilhar com seus amigos.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Fechar</button>');
     }
 
     render();
