@@ -1,264 +1,401 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nutriforma - Painel da Loja</title>
-  
-  <!-- Firebase SDKs (v9 Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo | Clube Nutriforma</title>
+    
+    <!-- Fonte Google Inter / Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-  <style>
-    :root {
-      --nutri-red: #b30c14;
-      --nutri-black: #111111;
-      --nutri-bg: #f8f9fa;
-      --nutri-card: #ffffff;
-    }
+    <style>
+        :root {
+            --bg-primary: #0F172A;
+            --bg-card: #1E293B;
+            --accent-gold: #F59E0B;
+            --accent-gold-hover: #D97706;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border-color: #334155;
+            --danger-color: #EF4444;
+            --success-color: #10B981;
+        }
 
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, sans-serif; background: var(--nutri-bg); color: var(--nutri-black); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
 
-    .header {
-      background: var(--nutri-black);
-      color: #fff;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 3px solid var(--nutri-red);
-    }
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .brand-logo { font-size: 20px; font-weight: 900; text-transform: uppercase; }
-    .brand-logo span { color: var(--nutri-red); }
+        /* Topbar / Header */
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+        .brand-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-    .card {
-      background: var(--nutri-card);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
+        .brand-logo span {
+            color: var(--accent-gold);
+        }
 
-    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
-    .search-input {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 14px;
-    }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #eee; font-size: 14px; }
-    th { background: #f1f1f1; font-weight: 700; color: #555; }
+        /* Main Layout */
+        main {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
 
-    .badge {
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 800;
-      color: #fff;
-    }
-    .badge-START { background: #6c757d; }
-    .badge-FIT { background: #0d6efd; }
-    .badge-PRIME { background: var(--nutri-red); }
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .btn {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 12px;
-    }
-    .btn-add { background: #198754; color: #fff; }
-    .btn-sub { background: #dc3545; color: #fff; }
+        .page-header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
 
-    .btn:hover { opacity: 0.85; }
+        /* Cards & Metrics Dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
 
-    /* Modal Admin */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.show { display: flex; }
-    .modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      width: min(400px, 90%);
-    }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-    .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
-  </style>
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-gold);
+            padding: 1rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-info h3 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-info p {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+        }
+
+        /* Data Section / Table Container */
+        .content-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem 0.6rem 2.5rem;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 18px;
+        }
+
+        /* Table Design */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: rgba(15, 23, 42, 0.5);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge-points {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-gold);
+            font-weight: 700;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+    </style>
 </head>
 <body>
 
-  <header class="header">
-    <div class="brand-logo">NUTRI<span>FORMA</span> - PAINEL DA LOJA</div>
-  </header>
+    <header>
+        <div class="brand-logo">
+            <i data-lucide="shield-check"></i>
+            CLUBE <span>NUTRIFORMA</span> <small style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.5rem;">ADMIN</small>
+        </div>
+        <div class="user-badge">
+            <i data-lucide="user"></i>
+            <span>Administrador</span>
+        </div>
+    </header>
 
-  <div class="container">
-    <div class="card">
-      <h2>👥 Clientes Cadastrados</h2>
-      <div class="search-bar">
-        <input type="text" id="search-input" class="search-input" placeholder="Buscar cliente por Nome ou CPF..." onkeyup="filterTable()">
-      </div>
+    <main>
+        <div class="page-header">
+            <div>
+                <h1>Painel de Controle</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Gerencie os clientes cadastrados e pontuações do clube.</p>
+            </div>
+        </div>
 
-      <table id="clients-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>CPF</th>
-            <th>Telefone</th>
-            <th>Pontos</th>
-            <th>Nível</th>
-            <th>Ações de Pontuação</th>
-          </tr>
-        </thead>
-        <tbody id="clients-list">
-          <tr><td colspan="6">Carregando dados dos clientes...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+        <!-- Indicadores / Métricas -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i data-lucide="users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total de Clientes</h3>
+                    <p id="total-clients">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i data-lucide="award"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Pontos Distribuídos</h3>
+                    <p id="total-points">0</p>
+                </div>
+            </div>
+        </div>
 
-  <!-- MODAL DE MANUTENÇÃO DE PONTOS -->
-  <div class="modal-overlay" id="admin-modal">
-    <div class="modal-content">
-      <h3 id="modal-title">Ajustar Pontos</h3>
-      <p id="modal-client-info" style="font-size: 13px; color: #666;"></p>
-      
-      <div class="form-group">
-        <label>Quantidade de Pontos</label>
-        <input type="number" id="modal-pts-input" class="form-control" placeholder="Ex: 50" min="1">
-      </div>
-      
-      <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button class="btn btn-add" style="flex:1;" onclick="applyPointChange('add')">➕ Adicionar</button>
-        <button class="btn btn-sub" style="flex:1;" onclick="applyPointChange('sub')">➖ Remover</button>
-      </div>
-      <button class="btn" style="width: 100%; margin-top: 10px; background: #ddd;" onclick="closeAdminModal()">Cancelar</button>
-    </div>
-  </div>
+        <!-- Tabela Principais Clientes -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2>Clientes Cadastrados</h2>
+                <div class="search-box">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="search-input" placeholder="Buscar cliente por nome ou CPF...">
+                </div>
+            </div>
 
-  <script>
-    // --- CONFIGURAÇÃO DO FIREBASE ---
-    // ATENÇÃO: Substitua pelos mesmos dados utilizados no index.html
-    const firebaseConfig = {
-      apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
-      authDomain: "nutriforma-fidelidade.firebaseapp.com",
-      projectId: "nutriforma-fidelidade",
-      storageBucket: "nutriforma-fidelidade.firebasestorage.app",
-      messagingSenderId: "368276912872",
-      appId: "1:368276912872:web:a7f54c67881f39fb55675d"
-    };
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CPF / Telefone</th>
+                            <th>Data de Cadastro</th>
+                            <th>Pontos Acumulados</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body">
+                        <tr>
+                            <td colspan="4" class="empty-message">Carregando dados do Firebase...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.firestore();
+    <!-- Conexão e Lógica Firebase (Firestore) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    let allClients = [];
-    let selectedClientCPF = null;
+        // CONFIGURAÇÃO DO SEU FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
+            authDomain: "nutriforma-fidelidade.firebaseapp.com",
+            projectId: "nutriforma-fidelidade",
+            storageBucket: "nutriforma-fidelidade.firebasestorage.app",
+            messagingSenderId: "368276912872",
+            appId: "1:368276912872:web:a7f54c67881f39fb55675d"
+      };
 
-    function getLevel(pts) {
-      return pts >= 250 ? 'PRIME' : pts >= 100 ? 'FIT' : 'START';
-    }
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    // Escuta em tempo real a coleção de clientes
-    function initRealtimeClients() {
-      db.collection("clientes").onSnapshot((snapshot) => {
-        allClients = [];
-        snapshot.forEach((doc) => {
-          allClients.push({ id: doc.id, ...doc.data() });
+        let clientsData = [];
+
+        // Elementos DOM
+        const tableBody = document.getElementById('admin-table-body');
+        const totalClientsEl = document.getElementById('total-clients');
+        const totalPointsEl = document.getElementById('total-points');
+        const searchInput = document.getElementById('search-input');
+
+        // Escuta atualizações da coleção "users" ou "clientes" no Firestore em tempo real
+        const usersRef = collection(db, "users"); // Ajuste o nome da sua coleção se for "clientes"
+
+        onSnapshot(usersRef, (snapshot) => {
+            clientsData = [];
+            let sumPoints = 0;
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                clientsData.push({
+                    id: doc.id,
+                    nome: data.nome || data.name || 'Sem nome',
+                    cpf: data.cpf || data.phone || 'Não informado',
+                    dataCadastro: data.dataCadastro || data.createdAt ? new Date(data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt).toLocaleDateString('pt-BR') : 'N/A',
+                    pontos: Number(data.pontos || data.points || 0)
+                });
+                sumPoints += Number(data.pontos || data.points || 0);
+            });
+
+            // Atualiza indicadores
+            totalClientsEl.textContent = clientsData.length;
+            totalPointsEl.textContent = sumPoints.toLocaleString('pt-BR');
+
+            // Renderiza tabela
+            renderTable(clientsData);
+        }, (error) => {
+            console.error("Erro ao carregar dados:", error);
+            tableBody.innerHTML = `<tr><td colspan="4" class="empty-message" style="color: var(--danger-color);">Erro ao carregar dados do Firebase. Verifique a chave de configuração.</td></tr>`;
         });
-        renderTable(allClients);
-      }, (error) => {
-        console.error("Erro ao carregar clientes: ", error);
-        document.querySelector('#clients-list').innerHTML = `<tr><td colspan="6" style="color:red">Erro ao carregar dados do Firebase.</td></tr>`;
-      });
-    }
 
-    function renderTable(clients) {
-      const tbody = document.querySelector('#clients-list');
-      if (clients.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6">Nenhum cliente cadastrado ainda.</td></tr>`;
-        return;
-      }
+        // Função para Renderizar Tabela
+        function renderTable(data) {
+            tableBody.innerHTML = '';
 
-      tbody.innerHTML = clients.map(client => {
-        const pts = client.pts || 0;
-        const level = getLevel(pts);
-        return `
-          <tr>
-            <td><b>${client.name || '-'}</b></td>
-            <td>${client.cpf || client.id}</td>
-            <td>${client.phone || '-'}</td>
-            <td><b style="font-size:16px;">${pts}</b> pts</td>
-            <td><span class="badge badge-${level}">${level}</span></td>
-            <td>
-              <button class="btn btn-add" onclick="openAdminModal('${client.id}', '${client.name}', ${pts})">⚙️ Gerenciar Pontos</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
+            if (data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="empty-message">Nenhum cliente cadastrado.</td></tr>`;
+                return;
+            }
 
-    function filterTable() {
-      const query = document.querySelector('#search-input').value.toLowerCase();
-      const filtered = allClients.filter(c => 
-        (c.name && c.name.toLowerCase().includes(query)) ||
-        (c.cpf && c.cpf.includes(query)) ||
-        (c.id && c.id.includes(query))
-      );
-      renderTable(filtered);
-    }
+            data.forEach(client => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${client.nome}</strong></td>
+                    <td>${client.cpf}</td>
+                    <td>${client.dataCadastro}</td>
+                    <td><span class="badge-points">${client.pontos} pts</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
 
-    function openAdminModal(cpf, name, currentPts) {
-      selectedClientCPF = cpf;
-      document.querySelector('#modal-client-info').textContent = `Cliente: ${name} (Atual: ${currentPts} pts)`;
-      document.querySelector('#modal-pts-input').value = '';
-      document.querySelector('#admin-modal').classList.add('show');
-    }
-
-    function closeAdminModal() {
-      document.querySelector('#admin-modal').classList.remove('show');
-      selectedClientCPF = null;
-    }
-
-    async function applyPointChange(type) {
-      const val = parseInt(document.querySelector('#modal-pts-input').value);
-      if (!val || val <= 0) {
-        alert('Informe um valor de pontos válido maior que zero.');
-        return;
-      }
-
-      const pointsDelta = type === 'add' ? val : -val;
-
-      try {
-        await db.collection("clientes").doc(selectedClientCPF).update({
-          pts: firebase.firestore.FieldValue.increment(pointsDelta)
+        // Filtro de Busca
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = clientsData.filter(client => 
+                client.nome.toLowerCase().includes(searchTerm) || 
+                client.cpf.toLowerCase().includes(searchTerm)
+            );
+            renderTable(filtered);
         });
-        closeAdminModal();
-      } catch (e) {
-        console.error(e);
-        alert('Erro ao atualizar pontos: ' + e.message);
-      }
-    }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      initRealtimeClients();
-    });
-  </script>
+        // Inicializa Ícones
+        lucide.createIcons();
+    </script>
 </body>
 </html>
