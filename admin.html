@@ -5,12 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo | Clube Nutriforma</title>
     
-    <!-- Fonte Google Inter / Montserrat -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Ícones Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
@@ -26,22 +23,9 @@
             --success-color: #10B981;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
 
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Topbar / Header */
         header {
             background-color: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
@@ -51,186 +35,43 @@
             align-items: center;
         }
 
-        .brand-logo {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 800;
-            font-size: 1.4rem;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .brand-logo span {
-            color: var(--accent-gold);
-        }
+        .brand-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .brand-logo span { color: var(--accent-gold); }
 
         .user-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 0.5rem 1rem;
-            border-radius: 999px;
-            border: 1px solid var(--border-color);
-            font-size: 0.9rem;
+            display: flex; align-items: center; gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.05); padding: 0.5rem 1rem;
+            border-radius: 999px; border: 1px solid var(--border-color); font-size: 0.9rem;
         }
 
-        /* Main Layout */
-        main {
-            flex: 1;
-            max-width: 1200px;
-            width: 100%;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-        }
+        main { flex: 1; max-width: 1200px; width: 100%; margin: 2rem auto; padding: 0 1.5rem; }
 
-        .page-header {
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .page-header { margin-bottom: 2rem; }
+        .page-header h1 { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 700; }
 
-        .page-header h1 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        .stat-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem; }
+        .stat-icon { background: rgba(245, 158, 11, 0.1); color: var(--accent-gold); padding: 1rem; border-radius: 10px; }
+        .stat-info h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; }
+        .stat-info p { font-size: 1.6rem; font-weight: 700; margin-top: 0.25rem; }
 
-        /* Cards & Metrics Dashboard */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-        }
+        .content-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+        .card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
 
-        .stat-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
+        .search-box { position: relative; width: 300px; }
+        .search-box input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem 0.6rem 2.5rem; color: var(--text-main); outline: none; }
+        .search-box i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; }
 
-        .stat-icon {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--accent-gold);
-            padding: 1rem;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: rgba(15, 23, 42, 0.5); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        td { padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.02); }
 
-        .stat-info h3 {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .stat-info p {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-top: 0.25rem;
-        }
-
-        /* Data Section / Table Container */
-        .content-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-        }
-
-        .card-header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .search-box {
-            position: relative;
-            width: 300px;
-        }
-
-        .search-box input {
-            width: 100%;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.6rem 0.8rem 0.6rem 2.5rem;
-            color: var(--text-main);
-            outline: none;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 0.8rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            width: 18px;
-        }
-
-        /* Table Design */
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        th {
-            background-color: rgba(15, 23, 42, 0.5);
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        td {
-            padding: 1.1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.95rem;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover {
-            background-color: rgba(255, 255, 255, 0.02);
-        }
-
-        .badge-points {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--accent-gold);
-            font-weight: 700;
-            padding: 0.3rem 0.6rem;
-            border-radius: 6px;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-        }
+        .badge-points { background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .btn-approve { background: var(--success-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .btn-reject { background: var(--danger-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem; }
+        .empty-message { text-align: center; padding: 2rem; color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -248,27 +89,20 @@
 
     <main>
         <div class="page-header">
-            <div>
-                <h1>Painel de Controle</h1>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Gerencie os clientes cadastrados e pontuações do clube.</p>
-            </div>
+            <h1>Painel de Controle</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Gerencie os clientes cadastrados e aprovações de pontos.</p>
         </div>
 
-        <!-- Indicadores / Métricas -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon">
-                    <i data-lucide="users"></i>
-                </div>
+                <div class="stat-icon"><i data-lucide="users"></i></div>
                 <div class="stat-info">
                     <h3>Total de Clientes</h3>
                     <p id="total-clients">0</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">
-                    <i data-lucide="award"></i>
-                </div>
+                <div class="stat-icon"><i data-lucide="award"></i></div>
                 <div class="stat-info">
                     <h3>Pontos Distribuídos</h3>
                     <p id="total-points">0</p>
@@ -276,42 +110,62 @@
             </div>
         </div>
 
-        <!-- Tabela Principais Clientes -->
+        <!-- SEÇÃO: Solicitações Pendentes -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2>Aprovações Pendentes</h2>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Ação Realizada</th>
+                            <th>Pontos</th>
+                            <th>Comprovante</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pending-table-body">
+                        <tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SEÇÃO: Clientes Cadastrados -->
         <div class="content-card">
             <div class="card-header">
                 <h2>Clientes Cadastrados</h2>
                 <div class="search-box">
                     <i data-lucide="search"></i>
-                    <input type="text" id="search-input" placeholder="Buscar cliente por nome ou CPF...">
+                    <input type="text" id="search-input" placeholder="Buscar por nome ou CPF...">
                 </div>
             </div>
-
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>Nome</th>
-                            <th>CPF / Telefone</th>
-                            <th>Data de Cadastro</th>
+                            <th>CPF</th>
+                            <th>Telefone</th>
+                            <th>Data Cadastro</th>
                             <th>Pontos Acumulados</th>
                         </tr>
                     </thead>
                     <tbody id="admin-table-body">
-                        <tr>
-                            <td colspan="4" class="empty-message">Carregando dados do Firebase...</td>
-                        </tr>
+                        <tr><td colspan="5" class="empty-message">Carregando dados do Firebase...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- Conexão e Lógica Firebase (Firestore) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // CONFIGURAÇÃO DO SEU FIREBASE
+        // Substitua com suas chaves reais do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
             authDomain: "nutriforma-fidelidade.firebaseapp.com",
@@ -319,56 +173,115 @@
             storageBucket: "nutriforma-fidelidade.firebasestorage.app",
             messagingSenderId: "368276912872",
             appId: "1:368276912872:web:a7f54c67881f39fb55675d"
-      };
+        };
 
-        // Inicializa o Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         let clientsData = [];
 
-        // Elementos DOM
         const tableBody = document.getElementById('admin-table-body');
+        const pendingTable = document.getElementById('pending-table-body');
         const totalClientsEl = document.getElementById('total-clients');
         const totalPointsEl = document.getElementById('total-points');
         const searchInput = document.getElementById('search-input');
 
-        // Escuta atualizações da coleção "users" ou "clientes" no Firestore em tempo real
-        const usersRef = collection(db, "users"); // Ajuste o nome da sua coleção se for "clientes"
-
-        onSnapshot(usersRef, (snapshot) => {
+        // 1. Busca os clientes da coleção "clientes" (mapeando name, cpf, phone, pts)
+        onSnapshot(collection(db, "clientes"), (snapshot) => {
             clientsData = [];
             let sumPoints = 0;
 
-            snapshot.forEach((doc) => {
-                const data = doc.data();
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const pontos = Number(data.pts || data.pontos || 0);
+
+                let dataFormatted = 'N/A';
+                if (data.createdAt) {
+                    const dateObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+                    dataFormatted = dateObj.toLocaleDateString('pt-BR');
+                }
+
                 clientsData.push({
-                    id: doc.id,
-                    nome: data.nome || data.name || 'Sem nome',
-                    cpf: data.cpf || data.phone || 'Não informado',
-                    dataCadastro: data.dataCadastro || data.createdAt ? new Date(data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt).toLocaleDateString('pt-BR') : 'N/A',
-                    pontos: Number(data.pontos || data.points || 0)
+                    id: docSnap.id,
+                    nome: data.name || data.nome || 'Sem nome',
+                    cpf: data.cpf || docSnap.id || 'N/A',
+                    phone: data.phone || 'N/A',
+                    dataCadastro: dataFormatted,
+                    pontos: pontos
                 });
-                sumPoints += Number(data.pontos || data.points || 0);
+                sumPoints += pontos;
             });
 
-            // Atualiza indicadores
             totalClientsEl.textContent = clientsData.length;
             totalPointsEl.textContent = sumPoints.toLocaleString('pt-BR');
 
-            // Renderiza tabela
             renderTable(clientsData);
         }, (error) => {
-            console.error("Erro ao carregar dados:", error);
-            tableBody.innerHTML = `<tr><td colspan="4" class="empty-message" style="color: var(--danger-color);">Erro ao carregar dados do Firebase. Verifique a chave de configuração.</td></tr>`;
+            console.error("Erro ao carregar clientes:", error);
+            tableBody.innerHTML = `<tr><td colspan="5" class="empty-message" style="color: var(--danger-color);">Erro ao carregar clientes do Firebase.</td></tr>`;
         });
 
-        // Função para Renderizar Tabela
+        // 2. Busca solicitações pendentes
+        onSnapshot(collection(db, "solicitacoes"), (snapshot) => {
+            pendingTable.innerHTML = '';
+            let hasPending = false;
+
+            snapshot.forEach((solDoc) => {
+                const data = solDoc.data();
+                if (data.status === 'pendente') {
+                    hasPending = true;
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${data.clienteNome || 'Cliente'}</strong></td>
+                        <td>${data.acao || 'Ação'}</td>
+                        <td><span class="badge-points">+${data.pontos || 0} pts</span></td>
+                        <td>${data.comprovanteUrl ? `<a href="${data.comprovanteUrl}" target="_blank" style="color: #3B82F6;">Ver Anexo</a>` : 'Sem foto'}</td>
+                        <td>
+                            <button class="btn-approve" onclick="aprovarSolicitacao('${solDoc.id}', '${data.clienteCpf}', ${data.pontos})"><i data-lucide="check"></i> Aprovar</button>
+                            <button class="btn-reject" onclick="recusarSolicitacao('${solDoc.id}')"><i data-lucide="x"></i> Recusar</button>
+                        </td>
+                    `;
+                    pendingTable.appendChild(row);
+                }
+            });
+
+            if (!hasPending) {
+                pendingTable.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>`;
+            }
+            lucide.createIcons();
+        });
+
+        // Funções de Aprovar e Recusar
+        window.aprovarSolicitacao = async (solId, clienteCpf, pontos) => {
+            try {
+                if (clienteCpf) {
+                    const clientRef = doc(db, "clientes", clienteCpf);
+                    await updateDoc(clientRef, { pts: increment(pontos) });
+                }
+                await updateDoc(doc(db, "solicitacoes", solId), { status: "aprovado" });
+                alert("✅ Comprovação aprovada e pontos creditados!");
+            } catch (err) {
+                console.error("Erro ao aprovar:", err);
+                alert("Erro ao aprovar a solicitação.");
+            }
+        };
+
+        window.recusarSolicitacao = async (solId) => {
+            if (confirm("Recusar esta solicitação?")) {
+                try {
+                    await updateDoc(doc(db, "solicitacoes", solId), { status: "recusado" });
+                    alert("❌ Solicitação recusada.");
+                } catch (err) {
+                    console.error("Erro ao recusar:", err);
+                }
+            }
+        };
+
         function renderTable(data) {
             tableBody.innerHTML = '';
 
             if (data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" class="empty-message">Nenhum cliente cadastrado.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhum cliente cadastrado.</td></tr>`;
                 return;
             }
 
@@ -377,6 +290,7 @@
                 row.innerHTML = `
                     <td><strong>${client.nome}</strong></td>
                     <td>${client.cpf}</td>
+                    <td>${client.phone}</td>
                     <td>${client.dataCadastro}</td>
                     <td><span class="badge-points">${client.pontos} pts</span></td>
                 `;
@@ -384,17 +298,15 @@
             });
         }
 
-        // Filtro de Busca
         searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const filtered = clientsData.filter(client => 
-                client.nome.toLowerCase().includes(searchTerm) || 
-                client.cpf.toLowerCase().includes(searchTerm)
+            const term = e.target.value.toLowerCase();
+            const filtered = clientsData.filter(c => 
+                c.nome.toLowerCase().includes(term) || 
+                c.cpf.toLowerCase().includes(term)
             );
             renderTable(filtered);
         });
 
-        // Inicializa Ícones
         lucide.createIcons();
     </script>
 </body>
