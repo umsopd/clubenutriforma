@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nutriforma - Painel da Loja</title>
+  
+  <!-- Firebase SDKs (v9 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --nutri-red: #b30c14;
+      --nutri-black: #111111;
+      --nutri-bg: #f8f9fa;
+      --nutri-card: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: var(--nutri-bg); color: var(--nutri-black); }
+
+    .header {
+      background: var(--nutri-black);
+      color: #fff;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--nutri-red);
+    }
+
+    .brand-logo { font-size: 20px; font-weight: 900; text-transform: uppercase; }
+    .brand-logo span { color: var(--nutri-red); }
+
+    .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+
+    .card {
+      background: var(--nutri-card);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+    th { background: #f1f1f1; font-weight: 700; color: #555; }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .badge-START { background: #6c757d; }
+    .badge-FIT { background: #0d6efd; }
+    .badge-PRIME { background: var(--nutri-red); }
+
+    .btn {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .btn-add { background: #198754; color: #fff; }
+    .btn-sub { background: #dc3545; color: #fff; }
+
+    .btn:hover { opacity: 0.85; }
+
+    /* Modal Admin */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      width: min(400px, 90%);
+    }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+    .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="brand-logo">NUTRI<span>FORMA</span> - PAINEL DA LOJA</div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2>👥 Clientes Cadastrados</h2>
+      <div class="search-bar">
+        <input type="text" id="search-input" class="search-input" placeholder="Buscar cliente por Nome ou CPF..." onkeyup="filterTable()">
+      </div>
+
+      <table id="clients-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Telefone</th>
+            <th>Pontos</th>
+            <th>Nível</th>
+            <th>Ações de Pontuação</th>
+          </tr>
+        </thead>
+        <tbody id="clients-list">
+          <tr><td colspan="6">Carregando dados dos clientes...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL DE MANUTENÇÃO DE PONTOS -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-content">
+      <h3 id="modal-title">Ajustar Pontos</h3>
+      <p id="modal-client-info" style="font-size: 13px; color: #666;"></p>
+      
+      <div class="form-group">
+        <label>Quantidade de Pontos</label>
+        <input type="number" id="modal-pts-input" class="form-control" placeholder="Ex: 50" min="1">
+      </div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-add" style="flex:1;" onclick="applyPointChange('add')">➕ Adicionar</button>
+        <button class="btn btn-sub" style="flex:1;" onclick="applyPointChange('sub')">➖ Remover</button>
+      </div>
+      <button class="btn" style="width: 100%; margin-top: 10px; background: #ddd;" onclick="closeAdminModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIGURAÇÃO DO FIREBASE ---
+    // ATENÇÃO: Substitua pelos mesmos dados utilizados no index.html
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
+      authDomain: "nutriforma-fidelidade.firebaseapp.com",
+      projectId: "nutriforma-fidelidade",
+      storageBucket: "nutriforma-fidelidade.firebasestorage.app",
+      messagingSenderId: "368276912872",
+      appId: "1:368276912872:web:a7f54c67881f39fb55675d"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    let allClients = [];
+    let selectedClientCPF = null;
+
+    function getLevel(pts) {
+      return pts >= 250 ? 'PRIME' : pts >= 100 ? 'FIT' : 'START';
+    }
+
+    // Escuta em tempo real a coleção de clientes
+    function initRealtimeClients() {
+      db.collection("clientes").onSnapshot((snapshot) => {
+        allClients = [];
+        snapshot.forEach((doc) => {
+          allClients.push({ id: doc.id, ...doc.data() });
+        });
+        renderTable(allClients);
+      }, (error) => {
+        console.error("Erro ao carregar clientes: ", error);
+        document.querySelector('#clients-list').innerHTML = `<tr><td colspan="6" style="color:red">Erro ao carregar dados do Firebase.</td></tr>`;
+      });
+    }
+
+    function renderTable(clients) {
+      const tbody = document.querySelector('#clients-list');
+      if (clients.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6">Nenhum cliente cadastrado ainda.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = clients.map(client => {
+        const pts = client.pts || 0;
+        const level = getLevel(pts);
+        return `
+          <tr>
+            <td><b>${client.name || '-'}</b></td>
+            <td>${client.cpf || client.id}</td>
+            <td>${client.phone || '-'}</td>
+            <td><b style="font-size:16px;">${pts}</b> pts</td>
+            <td><span class="badge badge-${level}">${level}</span></td>
+            <td>
+              <button class="btn btn-add" onclick="openAdminModal('${client.id}', '${client.name}', ${pts})">⚙️ Gerenciar Pontos</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterTable() {
+      const query = document.querySelector('#search-input').value.toLowerCase();
+      const filtered = allClients.filter(c => 
+        (c.name && c.name.toLowerCase().includes(query)) ||
+        (c.cpf && c.cpf.includes(query)) ||
+        (c.id && c.id.includes(query))
+      );
+      renderTable(filtered);
+    }
+
+    function openAdminModal(cpf, name, currentPts) {
+      selectedClientCPF = cpf;
+      document.querySelector('#modal-client-info').textContent = `Cliente: ${name} (Atual: ${currentPts} pts)`;
+      document.querySelector('#modal-pts-input').value = '';
+      document.querySelector('#admin-modal').classList.add('show');
+    }
+
+    function closeAdminModal() {
+      document.querySelector('#admin-modal').classList.remove('show');
+      selectedClientCPF = null;
+    }
+
+    async function applyPointChange(type) {
+      const val = parseInt(document.querySelector('#modal-pts-input').value);
+      if (!val || val <= 0) {
+        alert('Informe um valor de pontos válido maior que zero.');
+        return;
+      }
+
+      const pointsDelta = type === 'add' ? val : -val;
+
+      try {
+        await db.collection("clientes").doc(selectedClientCPF).update({
+          pts: firebase.firestore.FieldValue.increment(pointsDelta)
+        });
+        closeAdminModal();
+      } catch (e) {
+        console.error(e);
+        alert('Erro ao atualizar pontos: ' + e.message);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initRealtimeClients();
+    });
+  </script>
+</body>
+</html>
