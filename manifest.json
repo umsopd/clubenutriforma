@@ -2,7 +2,7 @@
   "name": "Nutriforma Fidelidade",
   "short_name": "Nutriforma",
   "description": "Programa de Fidelidade e Recompensas Nutriforma",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
