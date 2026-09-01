@@ -26,24 +26,20 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
 
-        /* ESTILOS TELA DE LOGIN */
+        /* TELA DE LOGIN */
         #login-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             z-index: 9999;
         }
 
         .login-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            padding: 2.5rem;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
+            padding: 2.5rem; border-radius: 16px;
+            width: 100%; max-width: 400px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
@@ -59,23 +55,20 @@
         }
         .form-group input:focus { border-color: var(--accent-gold); }
 
-        .btn-login {
-            width: 100%; background: var(--accent-gold); color: #000; border: none;
-            padding: 0.8rem; border-radius: 8px; font-weight: 700; cursor: pointer;
-            transition: background 0.2s;
+        .btn-primary {
+            background: var(--accent-gold); color: #000; border: none;
+            padding: 0.7rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 0.5rem; transition: background 0.2s;
         }
-        .btn-login:hover { background: var(--accent-gold-hover); }
+        .btn-primary:hover { background: var(--accent-gold-hover); }
 
-        /* PAINEL PRINCIPAL (Oculto até o login) */
+        /* PAINEL PRINCIPAL */
         #admin-panel { display: none; flex: 1; flex-direction: column; }
 
         header {
             background-color: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
         }
 
         .brand-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 0.5rem; }
@@ -99,7 +92,8 @@
         .content-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
         .card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
 
-        .search-box { position: relative; width: 300px; }
+        .header-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .search-box { position: relative; width: 260px; }
         .search-box input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem 0.6rem 2.5rem; color: var(--text-main); outline: none; }
         .search-box i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; }
 
@@ -110,10 +104,26 @@
         tr:hover { background-color: rgba(255, 255, 255, 0.02); }
 
         .badge-points { background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .btn-edit-points { background: rgba(245, 158, 11, 0.2); color: var(--accent-gold); border: 1px solid var(--accent-gold); padding: 0.35rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.5rem; }
+        
+        .btn-action { background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--border-color); padding: 0.35rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-right: 0.3rem; }
+        .btn-action:hover { background: rgba(255, 255, 255, 0.1); }
         .btn-approve { background: var(--success-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
         .btn-reject { background: var(--danger-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem; }
         .empty-message { text-align: center; padding: 2rem; color: var(--text-muted); }
+
+        /* MODAL CADASTRO / EDIÇÃO */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center;
+            z-index: 10000;
+        }
+        .modal-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            padding: 2rem; border-radius: 12px; width: 100%; max-width: 480px;
+        }
+        .modal-card h3 { font-family: 'Montserrat', sans-serif; margin-bottom: 1.5rem; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1.5rem; }
+        .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -137,12 +147,12 @@
                     <label>Senha</label>
                     <input type="password" id="login-pass" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn-login">Entrar no Painel</button>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Entrar no Painel</button>
             </form>
         </div>
     </div>
 
-    <!-- 2. PAINEL ADMIN (OCULTO ATÉ LOGIN) -->
+    <!-- 2. PAINEL ADMIN -->
     <div id="admin-panel">
         <header>
             <div class="brand-logo">
@@ -199,9 +209,14 @@
             <div class="content-card">
                 <div class="card-header">
                     <h2>Clientes Cadastrados</h2>
-                    <div class="search-box">
-                        <i data-lucide="search"></i>
-                        <input type="text" id="search-input" placeholder="Buscar por nome ou CPF...">
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="search-input" placeholder="Buscar por nome ou CPF...">
+                        </div>
+                        <button class="btn-primary" id="btn-add-client">
+                            <i data-lucide="user-plus"></i> Novo Cliente
+                        </button>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -211,7 +226,7 @@
                                 <th>Nome</th>
                                 <th>CPF</th>
                                 <th>Telefone</th>
-                                <th>Pontos Acumulados</th>
+                                <th>Pontos</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -224,50 +239,74 @@
         </main>
     </div>
 
+    <!-- MODAL DE CADASTRO / EDIÇÃO DE CLIENTE -->
+    <div class="modal-overlay" id="client-modal">
+        <div class="modal-card">
+            <h3 id="modal-title">Novo Cliente</h3>
+            <form id="client-form">
+                <input type="hidden" id="client-doc-id">
+                
+                <div class="form-group">
+                    <label>CPF (Apenas números ou formatado)</label>
+                    <input type="text" id="client-cpf" placeholder="000.000.000-00" required>
+                </div>
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="client-name" placeholder="Ex: Maria Silva" required>
+                </div>
+                <div class="form-group">
+                    <label>Telefone / WhatsApp</label>
+                    <input type="text" id="client-phone" placeholder="(41) 99999-9999">
+                </div>
+                <div class="form-group" id="group-initial-pts">
+                    <label>Pontuação Inicial</label>
+                    <input type="number" id="client-pts" value="0" min="0">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btn-close-modal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- FIREBASE & SCRIPT DE LÓGICA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Cole aqui suas credenciais reais do Firebase
+        // Substitua com suas credenciais do Firebase
         const firebaseConfig = {
-          apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
-          authDomain: "nutriforma-fidelidade.firebaseapp.com",
-          projectId: "nutriforma-fidelidade",
-          storageBucket: "nutriforma-fidelidade.firebasestorage.app",
-          messagingSenderId: "368276912872",
-          appId: "1:368276912872:web:a7f54c67881f39fb55675d"
-};
+        apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
+        authDomain: "nutriforma-fidelidade.firebaseapp.com",
+        projectId: "nutriforma-fidelidade",
+        storageBucket: "nutriforma-fidelidade.firebasestorage.app",
+        messagingSenderId: "368276912872",
+        appId: "1:368276912872:web:a7f54c67881f39fb55675d"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- AUTENTICAÇÃO SIMPLES DO ADMIN ---
+        // LOGIN
         const loginForm = document.getElementById('login-form');
         const loginScreen = document.getElementById('login-screen');
         const adminPanel = document.getElementById('admin-panel');
         const btnLogout = document.getElementById('btn-logout');
 
-        // Defina usuário e senha do Admin aqui:
         const ADMIN_USER = "Nutriforma";
         const ADMIN_PASS = "Nutri123";
 
-        // Verifica se já está logado na sessão
-        if (sessionStorage.getItem('adminLogged') === 'true') {
-            mostrarPainel();
-        }
+        if (sessionStorage.getItem('adminLogged') === 'true') mostrarPainel();
 
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const u = document.getElementById('login-user').value;
-            const p = document.getElementById('login-pass').value;
-
-            if (u === ADMIN_USER && p === ADMIN_PASS) {
+            if (document.getElementById('login-user').value === ADMIN_USER && 
+                document.getElementById('login-pass').value === ADMIN_PASS) {
                 sessionStorage.setItem('adminLogged', 'true');
                 mostrarPainel();
-            } else {
-                alert('Usuário ou senha incorretos!');
-            }
+            } else { alert('Usuário ou senha incorretos!'); }
         });
 
         btnLogout.addEventListener('click', () => {
@@ -282,7 +321,7 @@
             carregarDadosFirebase();
         }
 
-        // --- LÓGICA DE DADOS FIREBASE ---
+        // TABELAS E COMPONENTES
         let clientsData = [];
         const tableBody = document.getElementById('admin-table-body');
         const pendingTable = document.getElementById('pending-table-body');
@@ -290,8 +329,17 @@
         const totalPointsEl = document.getElementById('total-points');
         const searchInput = document.getElementById('search-input');
 
+        // MODAL
+        const modal = document.getElementById('client-modal');
+        const clientForm = document.getElementById('client-form');
+        const btnAddClient = document.getElementById('btn-add-client');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+
+        btnAddClient.addEventListener('click', () => abrirModalCliente());
+        btnCloseModal.addEventListener('click', () => modal.style.display = 'none');
+
         function carregarDadosFirebase() {
-            // 1. Clientes
+            // Escutar Clientes
             onSnapshot(collection(db, "clientes"), (snapshot) => {
                 clientsData = [];
                 let sumPoints = 0;
@@ -301,9 +349,9 @@
                     const pontos = Number(data.pts || data.pontos || 0);
 
                     clientsData.push({
-                        id: docSnap.id, // Geralmente o CPF sem formatação ou ID
+                        id: docSnap.id,
                         nome: data.name || data.nome || 'Sem nome',
-                        cpf: data.cpf || docSnap.id || 'N/A',
+                        cpf: data.cpf || docSnap.id,
                         phone: data.phone || 'N/A',
                         pontos: pontos
                     });
@@ -312,11 +360,10 @@
 
                 totalClientsEl.textContent = clientsData.length;
                 totalPointsEl.textContent = sumPoints.toLocaleString('pt-BR');
-
                 renderTable(clientsData);
             });
 
-            // 2. Solicitações Pendentes
+            // Escutar Solicitações Pendentes
             onSnapshot(collection(db, "solicitacoes"), (snapshot) => {
                 pendingTable.innerHTML = '';
                 let hasPending = false;
@@ -340,50 +387,96 @@
                     }
                 });
 
-                if (!hasPending) {
-                    pendingTable.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>`;
-                }
+                if (!hasPending) pendingTable.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>`;
                 lucide.createIcons();
             });
         }
 
-        // --- FUNÇÃO PARA LANÇAR/EDITAR PONTOS MANUAMENTE ---
+        // SALVAR CLIENTE (CADASTRO OU EDIÇÃO)
+        clientForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const docId = document.getElementById('client-doc-id').value;
+            const cpf = document.getElementById('client-cpf').value.trim();
+            const name = document.getElementById('client-name').value.trim();
+            const phone = document.getElementById('client-phone').value.trim();
+            const pts = Number(document.getElementById('client-pts').value) || 0;
+
+            // Remove caracteres especiais para criar a chave limpa no documento se preferir
+            const cleanCpf = cpf.replace(/\D/g, '');
+            const targetDocId = docId || cleanCpf || cpf;
+
+            try {
+                const clientRef = doc(db, "clientes", targetDocId);
+                
+                if (docId) {
+                    // Edição de cliente existente
+                    await updateDoc(clientRef, { name, cpf, phone });
+                    alert("✅ Cliente atualizado com sucesso!");
+                } else {
+                    // Novo cliente
+                    await setDoc(clientRef, {
+                        name, cpf, phone, pts,
+                        createdAt: serverTimestamp()
+                    });
+                    alert("✅ Novo cliente cadastrado!");
+                }
+
+                modal.style.display = 'none';
+            } catch (err) {
+                console.error("Erro ao salvar cliente:", err);
+                alert("Erro ao salvar no banco de dados.");
+            }
+        });
+
+        // ABRIR MODAL
+        function abrirModalCliente(client = null) {
+            document.getElementById('client-form').reset();
+            
+            if (client) {
+                // Modo Edição
+                document.getElementById('modal-title').textContent = "Editar Cliente";
+                document.getElementById('client-doc-id').value = client.id;
+                document.getElementById('client-cpf').value = client.cpf;
+                document.getElementById('client-name').value = client.nome;
+                document.getElementById('client-phone').value = client.phone;
+                document.getElementById('group-initial-pts').style.display = 'none'; // Pontos são alterados pelo botão de ajuste
+            } else {
+                // Modo Novo Cadastro
+                document.getElementById('modal-title').textContent = "Novo Cliente";
+                document.getElementById('client-doc-id').value = "";
+                document.getElementById('group-initial-pts').style.display = 'block';
+            }
+            modal.style.display = 'flex';
+        }
+
+        window.editarCliente = (id) => {
+            const client = clientsData.find(c => c.id === id);
+            if (client) abrirModalCliente(client);
+        };
+
         window.alterarPontosManualmente = async (clienteId, nomeCliente, pontosAtuais) => {
-            const valorInput = prompt(`Lançamento de Pontos em Loja - ${nomeCliente}\n\nPontos atuais: ${pontosAtuais}\nDigite a quantidade de pontos a Adicionar ou Deduzir:\n(Ex: 100 para somar, ou -50 para subtrair)`);
+            const valorInput = prompt(`Ajuste de Pontos em Loja - ${nomeCliente}\n\nPontos atuais: ${pontosAtuais}\nDigite os pontos a somar ou subtrair:\n(Ex: 100 para somar, -50 para subtrair)`);
 
             if (valorInput !== null) {
                 const quantidade = Number(valorInput);
-
-                if (isNaN(quantidade) || quantidade === 0) {
-                    alert("Digite um valor numérico válido.");
-                    return;
-                }
+                if (isNaN(quantidade) || quantidade === 0) return alert("Digite um número válido.");
 
                 try {
-                    const clientRef = doc(db, "clientes", clienteId);
-                    await updateDoc(clientRef, {
-                        pts: increment(quantidade)
-                    });
-                    alert(`✅ Pontuação atualizada com sucesso!\nForam ${quantidade > 0 ? 'adicionados' : 'removidos'} ${Math.abs(quantidade)} pontos.`);
-                } catch (err) {
-                    console.error("Erro ao alterar pontos:", err);
-                    alert("Erro ao atualizar os pontos do cliente.");
-                }
+                    await updateDoc(doc(db, "clientes", clienteId), { pts: increment(quantidade) });
+                    alert("✅ Pontuação atualizada!");
+                } catch (err) { console.error(err); alert("Erro ao atualizar pontos."); }
             }
         };
 
-        // Aprovação de Provas
         window.aprovarSolicitacao = async (solId, clienteCpf, pontos) => {
             try {
                 if (clienteCpf) {
-                    const clientRef = doc(db, "clientes", clienteCpf);
-                    await updateDoc(clientRef, { pts: increment(pontos) });
+                    const cleanCpf = clienteCpf.replace(/\D/g, '');
+                    await updateDoc(doc(db, "clientes", cleanCpf), { pts: increment(pontos) });
                 }
                 await updateDoc(doc(db, "solicitacoes", solId), { status: "aprovado" });
-                alert("✅ Comprovação aprovada e pontos creditados!");
-            } catch (err) {
-                console.error("Erro ao aprovar:", err);
-            }
+                alert("✅ Comprovação aprovada!");
+            } catch (err) { console.error(err); }
         };
 
         window.recusarSolicitacao = async (solId) => {
@@ -394,7 +487,6 @@
 
         function renderTable(data) {
             tableBody.innerHTML = '';
-
             if (data.length === 0) {
                 tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhum cliente cadastrado.</td></tr>`;
                 return;
@@ -408,8 +500,11 @@
                     <td>${client.phone}</td>
                     <td><span class="badge-points">${client.pontos} pts</span></td>
                     <td>
-                        <button class="btn-edit-points" onclick="alterarPontosManualmente('${client.id}', '${client.nome}', ${client.pontos})">
-                            <i data-lucide="plus-circle"></i> Ajustar Pontos
+                        <button class="btn-action" onclick="editarCliente('${client.id}')">
+                            <i data-lucide="edit-3"></i> Editar
+                        </button>
+                        <button class="btn-action" onclick="alterarPontosManualmente('${client.id}', '${client.nome}', ${client.pontos})">
+                            <i data-lucide="plus-circle"></i> Pontos
                         </button>
                     </td>
                 `;
