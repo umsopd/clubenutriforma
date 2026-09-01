@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Nutriforma">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Nutriforma">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#b30c14">
@@ -227,7 +227,7 @@
 
     .form-group { margin-bottom: 12px; text-align: left; }
     .form-group label { display: block; font-size: 11px; font-weight: 700; color: #444; margin-bottom: 4px; }
-    .form-control {
+    .form-control, .input-select, .input-textarea {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #ddd;
@@ -236,7 +236,7 @@
       font-size: 13px;
       outline: none;
     }
-    .form-control:focus { border-color: var(--nutri-red); }
+    .form-control:focus, .input-select:focus, .input-textarea:focus { border-color: var(--nutri-red); }
 
     .profile-info-list { list-style: none; padding: 0; margin: 10px 0 0; font-size: 12px; }
     .profile-info-list li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
@@ -341,6 +341,9 @@
     }
 
     .auth-tab.active { color: var(--nutri-red); border-bottom: 2px solid var(--nutri-red); }
+    
+    .btn-primary { background: var(--nutri-red); color: #fff; border: 0; padding: 10px 14px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+    .btn-secondary { background: #eee; color: #333; border: 0; padding: 10px 14px; border-radius: 10px; font-weight: 800; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -556,11 +559,60 @@
     </nav>
   </div>
 
-  <!-- MODAL -->
+  <!-- MODAL DE SISTEMA -->
   <div class="modal-overlay" id="modal">
     <div class="modal-sheet">
       <button class="close-modal" onclick="closeM()">&times;</button>
       <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- MODAL DE PESQUISA DE SATISFAÇÃO -->
+  <div class="modal-overlay" id="survey-modal">
+    <div class="modal-sheet">
+      <button class="close-modal" onclick="document.getElementById('survey-modal').style.display='none'">&times;</button>
+      <h2>📋 Pesquisa de Satisfação</h2>
+      <form id="survey-form">
+          <div class="form-group">
+              <label>Como avalia o atendimento?</label>
+              <select id="survey-rating-atendimento" required class="input-select">
+                  <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
+                  <option value="4">⭐⭐⭐⭐ - Muito bom</option>
+                  <option value="3">⭐⭐⭐ - Regular</option>
+                  <option value="2">⭐⭐ - Ruim</option>
+                  <option value="1">⭐ - Péssimo</option>
+              </select>
+          </div>
+
+          <div class="form-group">
+              <label>Variedade e estoque de produtos:</label>
+              <select id="survey-rating-produtos" required class="input-select">
+                  <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
+                  <option value="4">⭐⭐⭐⭐ - Boa</option>
+                  <option value="3">⭐⭐⭐ - Regular</option>
+                  <option value="2">⭐⭐ - Pouca variedade</option>
+              </select>
+          </div>
+
+          <div class="form-group">
+              <label>O que acha do Clube de Fidelidade?</label>
+              <select id="survey-clube" required class="input-select">
+                  <option value="Excelente">Fácil de usar e vantajoso</option>
+                  <option value="Bom">Bom, mas quero aprender mais</option>
+                  <option value="Melhorar">Pode melhorar</option>
+              </select>
+          </div>
+
+          <div class="form-group">
+              <label>Sugestão de produto ou melhoria:</label>
+              <textarea id="survey-feedback" rows="3" placeholder="Escreva aqui..." class="input-textarea"></textarea>
+          </div>
+
+          <div style="display:flex; gap: 0.5rem; margin-top: 1rem;">
+              <button type="button" class="btn-secondary" onclick="document.getElementById('survey-modal').style.display='none'">Cancelar</button>
+              <button type="submit" class="btn-primary" style="flex:1;">Enviar (+10 pts)</button>
+          </div>
+      </form>
     </div>
   </div>
 
@@ -593,7 +645,7 @@
       { id: 'insta', icon: '📸', title: 'Marcar @Nutriforma', pts: 15, desc: 'Poste nos Stories usando nossos produtos e envie o print.' },
       { id: 'birthday', icon: '🎂', title: 'Aniversário', pts: 30, desc: 'Envie foto do seu documento para comprovação no mês de aniversário.' },
       { id: 'promo', icon: '🔥', title: 'Participar de campanha', pts: 20, desc: 'Envie o print da sua participação nas campanhas sazonais.' },
-      { id: 'survey', icon: '💬', title: 'Responder pesquisa', pts: 10, desc: 'Ajude a melhorar nossos serviços com seu comprovante de resposta.' }
+      { id: 'survey', icon: '💬', title: 'Responder pesquisa', pts: 10, desc: 'Ajude a melhorar nossos serviços e ganhe pontos.' }
     ];
 
     const R = [
@@ -888,7 +940,21 @@
       });
     }
 
+    window.abrirModalPesquisa = () => {
+      const surveyModal = document.getElementById('survey-modal');
+      if (surveyModal) {
+          surveyModal.style.display = 'flex';
+      } else {
+          console.error("Modal 'survey-modal' não foi encontrado no HTML.");
+      }
+    };
+
     function openActionModal(id) {
+      if (id === 'survey') {
+        abrirModalPesquisa();
+        return;
+      }
+
       const item = A.find(a => a.id === id);
       
       if (id === 'refer') {
@@ -921,8 +987,8 @@
           <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px; text-align:center;">
             <p class="small-text" style="margin-bottom:8px;">Prefere comprar agora antes de enviar?</p>
             <div style="display:flex; gap:8px;">
-              <a href="https://l.instagram.com/?u=https%3A%2F%2Fnutriforma11.lojavirtualnuvem.com.br%2F&e=AUC-xm9BvhZMuv57EcVQQBc6Gq8Fr2E_8d-wp_byDJPu5NcJ0bxrVQ10GUmc6DmpmgmIaazoHsfSKqe3LtN81_kp3M2unvjmU9fsYPU72DUTSPETO6_CN74bkSSiNinTLJyIOR8u-B4" target="_blank" class="nutri-btn outline" style="flex:1; font-size:10px;">🌐 Site</a>
-              <a href="https://l.instagram.com/?u=https%3A%2F%2Fwa.me%2F554188215348%3Ftext%3DOl%25C3%25A1%2520%25F0%259F%2591%258B%252C%2520vim%2520pelo%2520Instagram%2520da%2520Nutri%2520Forma%2520e%2520quero%2520saber%2520mais%2520sobre%2520suplementos&e=AUB8vG0ealTOuzTFD9wiSnsEXNI9_w3OicIUaLKxDCEc_SfCWXtIReQz1u0g0_ITcDKXUtfnDSFfklfUTUJyoKriwew1Lp6k8097ladDDrmrhSX0eN1Eitmalph72wFgA6iWRMCWdAw" target="_blank" class="nutri-btn whatsapp" style="flex:1; font-size:10px;">💬 WhatsApp</a>
+              <a href="https://nutriforma11.lojavirtualnuvem.com.br/" target="_blank" class="nutri-btn outline" style="flex:1; font-size:10px;">🌐 Site</a>
+              <a href="https://wa.me/554188215348" target="_blank" class="nutri-btn whatsapp" style="flex:1; font-size:10px;">💬 WhatsApp</a>
             </div>
           </div>
         `;
@@ -971,93 +1037,89 @@
       }
     }
 
-    // MODAL DE EDIÇÃO DE PERFIL (COM OPÇÃO DE EXCLUIR CONTA)
-function openEditProfile() {
-  const currentGoal = userProfile.goal || 'Saúde & Bem-Estar';
-  const goalsOptions = [
-    'Saúde & Bem-Estar',
-    'Emagrecimento',
-    'Ganho de Massa Muscular',
-    'Performance & Energia',
-    'Definição Corporal',
-    'Reeducação Alimentar'
-  ];
+    function openEditProfile() {
+      const currentGoal = userProfile.goal || 'Saúde & Bem-Estar';
+      const goalsOptions = [
+        'Saúde & Bem-Estar',
+        'Emagrecimento',
+        'Ganho de Massa Muscular',
+        'Performance & Energia',
+        'Definição Corporal',
+        'Reeducação Alimentar'
+      ];
 
-  const goalOptionsHTML = goalsOptions.map(g => 
-    `<option value="${g}" ${g === currentGoal ? 'selected' : ''}>${g}</option>`
-  ).join('');
+      const goalOptionsHTML = goalsOptions.map(g => 
+        `<option value="${g}" ${g === currentGoal ? 'selected' : ''}>${g}</option>`
+      ).join('');
 
-  let html = `
-    <h2>✏️ Editar Perfil</h2>
-    <div id="edit-profile-form">
-      <div class="form-group">
-        <label>Nome Completo</label>
-        <input type="text" id="edit-name" class="form-control" value="${userProfile.name || ''}">
-      </div>
-      <div class="form-group">
-        <label>Data de Nascimento</label>
-        <input type="date" id="edit-dob" class="form-control" value="${userProfile.dob || ''}">
-      </div>
-      <div class="form-group">
-        <label>E-mail</label>
-        <input type="email" id="edit-email" class="form-control" value="${userProfile.email || ''}">
-      </div>
-      <div class="form-group">
-        <label>Celular / WhatsApp</label>
-        <input type="text" id="edit-phone" class="form-control" value="${userProfile.phone || ''}">
-      </div>
-      <div class="form-group">
-        <label>Endereço</label>
-        <input type="text" id="edit-address" class="form-control" value="${userProfile.address || ''}">
-      </div>
-      <div class="form-group">
-        <label>Objetivo Principal</label>
-        <select id="edit-goal" class="form-control">
-          ${goalOptionsHTML}
-        </select>
-      </div>
-      
-      <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="saveProfile()">Salvar Alterações</button>
-      
-      <div style="margin-top:20px; border-top:1px solid #fee2e2; padding-top:15px; text-align:center;">
-        <button type="button" class="nutri-btn" style="width:100%; background-color:#ef4444; color:#fff;" onclick="deleteAccount()">🗑️ Excluir Minha Conta</button>
-      </div>
-    </div>
-  `;
-  modal(html);
+      let html = `
+        <h2>✏️ Editar Perfil</h2>
+        <div id="edit-profile-form">
+          <div class="form-group">
+            <label>Nome Completo</label>
+            <input type="text" id="edit-name" class="form-control" value="${userProfile.name || ''}">
+          </div>
+          <div class="form-group">
+            <label>Data de Nascimento</label>
+            <input type="date" id="edit-dob" class="form-control" value="${userProfile.dob || ''}">
+          </div>
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="edit-email" class="form-control" value="${userProfile.email || ''}">
+          </div>
+          <div class="form-group">
+            <label>Celular / WhatsApp</label>
+            <input type="text" id="edit-phone" class="form-control" value="${userProfile.phone || ''}">
+          </div>
+          <div class="form-group">
+            <label>Endereço</label>
+            <input type="text" id="edit-address" class="form-control" value="${userProfile.address || ''}">
+          </div>
+          <div class="form-group">
+            <label>Objetivo Principal</label>
+            <select id="edit-goal" class="form-control">
+              ${goalOptionsHTML}
+            </select>
+          </div>
+          
+          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="saveProfile()">Salvar Alterações</button>
+          
+          <div style="margin-top:20px; border-top:1px solid #fee2e2; padding-top:15px; text-align:center;">
+            <button type="button" class="nutri-btn" style="width:100%; background-color:#ef4444; color:#fff;" onclick="deleteAccount()">🗑️ Excluir Minha Conta</button>
+          </div>
+        </div>
+      `;
+      modal(html);
 
-  setTimeout(() => {
-    document.querySelectorAll('#edit-profile-form input, #edit-profile-form select').forEach(input => {
-      input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          saveProfile();
-        }
-      });
-    });
-  }, 100);
-}
+      setTimeout(() => {
+        document.querySelectorAll('#edit-profile-form input, #edit-profile-form select').forEach(input => {
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              saveProfile();
+            }
+          });
+        });
+      }, 100);
+    }
 
-// FUNÇÃO PARA DELETAR O CADASTRO DO CLIENTE NO FIREBASE
-async function deleteAccount() {
-  if (!currentUserCPF) return;
+    async function deleteAccount() {
+      if (!currentUserCPF) return;
 
-  const confirmDelete = confirm("Tem certeza de que deseja excluir permanentemente o seu cadastro? Seus pontos acumulados serão perdidos e esta ação não poderá ser desfeita.");
+      const confirmDelete = confirm("Tem certeza de que deseja excluir permanentemente o seu cadastro? Seus pontos acumulados serão perdidos e esta ação não poderá ser desfeita.");
 
-  if (!confirmDelete) return;
+      if (!confirmDelete) return;
 
-  try {
-    // Remove o documento do cliente do Firestore
-    await db.collection("clientes").doc(currentUserCPF).delete();
-    
-    alert("Sua conta foi excluída com sucesso.");
-    closeM();
-    logout();
-  } catch (e) {
-    console.error("Erro ao excluir conta: ", e);
-    alert("Erro ao excluir cadastro: " + e.message);
-  }
-}
+      try {
+        await db.collection("clientes").doc(currentUserCPF).delete();
+        alert("Sua conta foi excluída com sucesso.");
+        closeM();
+        logout();
+      } catch (e) {
+        console.error("Erro ao excluir conta: ", e);
+        alert("Erro ao excluir cadastro: " + e.message);
+      }
+    }
 
     function modal(t) {
       document.querySelector('#modal-body').innerHTML = t === 'mission' ? '<h2>🔥 Missão da semana</h2><p class="small-text">Complete 3 ações para ganhar <b>+30 pontos bônus</b>.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Entendi</button>' : t;
@@ -1100,118 +1162,63 @@ async function deleteAccount() {
         });
       });
 
+      const surveyForm = document.getElementById('survey-form');
+      if (surveyForm) {
+        surveyForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          if (!currentUserCPF) {
+              alert("Faça login para responder a pesquisa.");
+              return;
+          }
+
+          const dadosPesquisa = {
+              clienteCpf: currentUserCPF,
+              clienteNome: userProfile.name || 'Cliente',
+              atendimento: document.getElementById('survey-rating-atendimento').value,
+              produtos: document.getElementById('survey-rating-produtos').value,
+              experienciaClube: document.getElementById('survey-clube').value,
+              feedback: document.getElementById('survey-feedback').value,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              pontosLiberados: false
+          };
+
+          try {
+              await db.collection("pesquisas").add(dadosPesquisa);
+
+              await db.collection("solicitacoes").add({
+                  clienteCpf: currentUserCPF,
+                  clienteNome: userProfile.name || 'Cliente',
+                  acao: "Pesquisa de Satisfação",
+                  pontos: 10,
+                  status: "pendente",
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+
+              alert("🎉 Obrigado! Sua pesquisa foi enviada e 10 pontos foram solicitados!");
+              document.getElementById('survey-modal').style.display = 'none';
+              surveyForm.reset();
+          } catch (err) {
+              console.error("Erro ao enviar pesquisa:", err);
+              alert("Erro ao enviar pesquisa. Tente novamente.");
+          }
+        });
+      }
+
       const activeCPF = localStorage.getItem('nutri_active_cpf');
       if (activeCPF) {
         currentUserCPF = activeCPF;
         initApp();
       }
     });
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log('PWA Service Worker Registrado!'))
-      .catch((err) => console.log('Erro PWA:', err));
-  });
-}
-    <!-- MODAL PESQUISA DE SATISFAÇÃO -->
-<div class="modal-overlay" id="survey-modal" style="display:none;">
-    <div class="modal-card">
-        <h3>Pesquisa de Satisfação (+10 pts)</h3>
-        <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 1rem;">
-            Responda rapidinho e ganhe 10 pontos no seu saldo!
-        </p>
-        
-        <form id="survey-form">
-            <div class="form-group">
-                <label>Como avalia o atendimento?</label>
-                <select id="survey-rating-atendimento" required class="input-select">
-                    <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
-                    <option value="4">⭐⭐⭐⭐ - Muito bom</option>
-                    <option value="3">⭐⭐⭐ - Regular</option>
-                    <option value="2">⭐⭐ - Ruim</option>
-                    <option value="1">⭐ - Péssimo</option>
-                </select>
-            </div>
 
-            <div class="form-group">
-                <label>Variedade e estoque de produtos:</label>
-                <select id="survey-rating-produtos" required class="input-select">
-                    <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
-                    <option value="4">⭐⭐⭐⭐ - Boa</option>
-                    <option value="3">⭐⭐⭐ - Regular</option>
-                    <option value="2">⭐⭐ - Pouca variedade</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>O que acha do Clube de Fidelidade?</label>
-                <select id="survey-clube" required class="input-select">
-                    <option value="Excelente">Fácil de usar e vantajoso</option>
-                    <option value="Bom">Bom, mas quero aprender mais</option>
-                    <option value="Melhorar">Pode melhorar</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Sugestão de produto ou melhoria:</label>
-                <textarea id="survey-feedback" rows="3" placeholder="Escreva aqui..." class="input-textarea"></textarea>
-            </div>
-
-            <div style="display:flex; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" class="btn-secondary" onclick="document.getElementById('survey-modal').style.display='none'">Cancelar</button>
-                <button type="submit" class="btn-primary" style="flex:1;">Enviar (+10 pts)</button>
-            </div>
-        </form>
-    </div>
-</div>
-    // Envio da Pesquisa de Satisfação
-const surveyForm = document.getElementById('survey-form');
-
-surveyForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // Pega o cliente logado na sessão
-    const userCpf = localStorage.getItem('userCpf'); 
-    const userName = localStorage.getItem('userName') || 'Cliente';
-
-    if (!userCpf) {
-        alert("Faça login para responder a pesquisa.");
-        return;
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('PWA Service Worker Registrado!'))
+          .catch((err) => console.log('Erro PWA:', err));
+      });
     }
-
-    const dadosPesquisa = {
-        clienteCpf: userCpf,
-        clienteNome: userName,
-        atendimento: document.getElementById('survey-rating-atendimento').value,
-        produtos: document.getElementById('survey-rating-produtos').value,
-        experienciaClube: document.getElementById('survey-clube').value,
-        feedback: document.getElementById('survey-feedback').value,
-        data: new Date(),
-        pontosLiberados: false
-    };
-
-    try {
-        // 1. Salva a pesquisa no Firebase
-        await addDoc(collection(db, "pesquisas"), dadosPesquisa);
-
-        // 2. Cria solicitação pendente de +10 pontos no Admin
-        await addDoc(collection(db, "solicitacoes"), {
-            clienteCpf: userCpf,
-            clienteNome: userName,
-            acao: "Pesquisa de Satisfação",
-            pontos: 10,
-            status: "pendente",
-            createdAt: serverTimestamp()
-        });
-
-        alert("🎉 Obrigado! Sua pesquisa foi enviada e 10 pontos foram solicitados!");
-        document.getElementById('survey-modal').style.display = 'none';
-        surveyForm.reset();
-    } catch (err) {
-        console.error("Erro ao enviar pesquisa:", err);
-        alert("Erro ao enviar pesquisa. Tente novamente.");
-    }
-});
   </script>
 </body>
 </html>
