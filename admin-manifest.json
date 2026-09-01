@@ -1,13 +1,13 @@
 {
-  "name": "Nutriforma Painel Admin",
+  "id": "/clube-admin",
+  "name": "Nutriforma Admin",
   "short_name": "Nutri Admin",
-  "description": "Painel Administrativo Nutriforma",
   "start_url": "./admin.html",
-  "scope": "./",
+  "scope": "./admin.html",
   "display": "standalone",
   "background_color": "#0F172A",
   "theme_color": "#0F172A",
-"icons": [
+  "icons": [
     {
       "src": "https://i.ibb.co/Txx5H7JJ/icon-admin-png.png",
       "sizes": "192x192",
