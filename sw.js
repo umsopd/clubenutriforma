@@ -1,7 +1,7 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open('nutriforma-v1').then((cache) => {
-      return cache.addAll(['/']);
+      return cache.addAll(['./', './index.html']);
     })
   );
 });
