@@ -726,6 +726,7 @@
       const newEmail = document.querySelector('#edit-email').value;
       const newPhone = document.querySelector('#edit-phone').value;
       const newAddress = document.querySelector('#edit-address').value;
+      const newGoal = document.querySelector('#edit-goal').value;
 
       try {
         await db.collection("clientes").doc(currentUserCPF).update({
@@ -733,10 +734,11 @@
           dob: newDob,
           email: newEmail,
           phone: newPhone,
-          address: newAddress
+          address: newAddress,
+          goal: newGoal
         });
 
-        modal('<h2>✅ Perfil Atualizado!</h2><p class="small-text">Suas informações foram salvas na nuvem.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok</button>');
+        modal('<h2>✅ Perfil Atualizado!</h2><p class="small-text">Suas informações e seu objetivo foram salvos com sucesso.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok</button>');
       } catch (e) {
         console.error(e);
         alert("Erro ao atualizar perfil: " + e.message);
@@ -817,7 +819,7 @@
       document.querySelector('#display-email').textContent = userProfile.email || '-';
       document.querySelector('#display-phone').textContent = userProfile.phone || '-';
       document.querySelector('#display-address').textContent = userProfile.address ? `${userProfile.address} - ${userProfile.city || ''}/${userProfile.state || ''}` : '-';
-      document.querySelector('#display-goal').textContent = userProfile.goal || '-';
+      document.querySelector('#display-goal').textContent = userProfile.goal || 'Saúde & Bem-Estar';
       
       const refCode = firstName.toUpperCase() + '10';
       document.querySelector('#referral-code-display').textContent = refCode;
@@ -832,23 +834,21 @@
       ).join('');
     }
 
-    // COMPACTAÇÃO DE IMAGEM OTIMIZADA COM SUPORTE A PNG E TIMEOUT DE SEGURANÇA
     function compressImage(file, maxWidth = 1024, quality = 0.7) {
-      return new Promise((resolve) => {
-        // Timeout de fallback para não travar a UI caso a imagem seja incompatível
-        const timeout = setTimeout(() => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
-          reader.readAsDataURL(file);
-        }, 4000);
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          reject(new Error("O processamento da imagem demorou muito. Tente uma imagem menor."));
+        }, 10000);
 
         const reader = new FileReader();
         reader.readAsDataURL(file);
+        
         reader.onload = (event) => {
           const img = new Image();
           img.src = event.target.result;
+
           img.onload = () => {
-            clearTimeout(timeout);
+            clearTimeout(timer);
             let width = img.width;
             let height = img.height;
 
@@ -862,22 +862,23 @@
             canvas.height = height;
 
             const ctx = canvas.getContext('2d');
-            // Desenha fundo branco para evitar artefatos em PNGs transparentes
-            ctx.fillStyle = '#FFFFFF';
+            ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, width, height);
             ctx.drawImage(img, 0, 0, width, height);
 
             const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
             resolve(compressedBase64);
           };
-          img.onerror = () => {
-            clearTimeout(timeout);
-            resolve(event.target.result);
+
+          img.onerror = (err) => {
+            clearTimeout(timer);
+            reject(err);
           };
         };
-        reader.onerror = () => {
-          clearTimeout(timeout);
-          resolve(null);
+
+        reader.onerror = (err) => {
+          clearTimeout(timer);
+          reject(err);
         };
       });
     }
@@ -940,13 +941,7 @@
 
       try {
         const file = fileInput.files[0];
-        
-        // Compacta a imagem garantindo que o PNG não trave a conversão
         const imageBase64 = await compressImage(file, 1024, 0.7);
-
-        if (!imageBase64) {
-          throw new Error("Não foi possível carregar a imagem selecionada.");
-        }
 
         await db.collection("solicitacoes").add({
           clienteCpf: currentUserCPF,
@@ -965,38 +960,71 @@
         `);
       } catch (err) {
         console.error("Erro ao enviar solicitação: ", err);
-        alert("Ocorreu um erro ao enviar o comprovante: " + err.message);
+        alert("Erro ao processar imagem: " + (err.message || "Tente novamente com outro arquivo."));
         btn.disabled = false;
         btn.textContent = "Enviar para Análise";
       }
     }
 
     function openEditProfile() {
+      const currentGoal = userProfile.goal || 'Saúde & Bem-Estar';
+      const goalsOptions = [
+        'Saúde & Bem-Estar',
+        'Emagrecimento',
+        'Ganho de Massa Muscular',
+        'Performance & Energia',
+        'Definição Corporal',
+        'Reeducação Alimentar'
+      ];
+
+      const goalOptionsHTML = goalsOptions.map(g => 
+        `<option value="${g}" ${g === currentGoal ? 'selected' : ''}>${g}</option>`
+      ).join('');
+
       let html = `
         <h2>✏️ Editar Perfil</h2>
-        <div class="form-group">
-          <label>Nome Completo</label>
-          <input type="text" id="edit-name" class="form-control" value="${userProfile.name || ''}">
+        <div id="edit-profile-form">
+          <div class="form-group">
+            <label>Nome Completo</label>
+            <input type="text" id="edit-name" class="form-control" value="${userProfile.name || ''}">
+          </div>
+          <div class="form-group">
+            <label>Data de Nascimento</label>
+            <input type="date" id="edit-dob" class="form-control" value="${userProfile.dob || ''}">
+          </div>
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="edit-email" class="form-control" value="${userProfile.email || ''}">
+          </div>
+          <div class="form-group">
+            <label>Celular / WhatsApp</label>
+            <input type="text" id="edit-phone" class="form-control" value="${userProfile.phone || ''}">
+          </div>
+          <div class="form-group">
+            <label>Endereço</label>
+            <input type="text" id="edit-address" class="form-control" value="${userProfile.address || ''}">
+          </div>
+          <div class="form-group">
+            <label>Objetivo Principal</label>
+            <select id="edit-goal" class="form-control">
+              ${goalOptionsHTML}
+            </select>
+          </div>
+          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="saveProfile()">Salvar Alterações</button>
         </div>
-        <div class="form-group">
-          <label>Data de Nascimento</label>
-          <input type="date" id="edit-dob" class="form-control" value="${userProfile.dob || ''}">
-        </div>
-        <div class="form-group">
-          <label>E-mail</label>
-          <input type="email" id="edit-email" class="form-control" value="${userProfile.email || ''}">
-        </div>
-        <div class="form-group">
-          <label>Celular / WhatsApp</label>
-          <input type="text" id="edit-phone" class="form-control" value="${userProfile.phone || ''}">
-        </div>
-        <div class="form-group">
-          <label>Endereço</label>
-          <input type="text" id="edit-address" class="form-control" value="${userProfile.address || ''}">
-        </div>
-        <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="saveProfile()">Salvar Alterações</button>
       `;
       modal(html);
+
+      setTimeout(() => {
+        document.querySelectorAll('#edit-profile-form input, #edit-profile-form select').forEach(input => {
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              saveProfile();
+            }
+          });
+        });
+      }, 100);
     }
 
     function modal(t) {
@@ -1022,6 +1050,24 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('#form-login input').forEach(input => {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleLogin();
+          }
+        });
+      });
+
+      document.querySelectorAll('#form-register input').forEach(input => {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleRegister();
+          }
+        });
+      });
+
       const activeCPF = localStorage.getItem('nutri_active_cpf');
       if (activeCPF) {
         currentUserCPF = activeCPF;
