@@ -26,6 +26,49 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
 
+        /* ESTILOS TELA DE LOGIN */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 2.5rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .login-card h2 { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .login-card p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+        .form-group { text-align: left; margin-bottom: 1.2rem; }
+        .form-group label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.4rem; }
+        .form-group input {
+            width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 0.75rem 1rem; color: var(--text-main); outline: none;
+        }
+        .form-group input:focus { border-color: var(--accent-gold); }
+
+        .btn-login {
+            width: 100%; background: var(--accent-gold); color: #000; border: none;
+            padding: 0.8rem; border-radius: 8px; font-weight: 700; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-login:hover { background: var(--accent-gold-hover); }
+
+        /* PAINEL PRINCIPAL (Oculto até o login) */
+        #admin-panel { display: none; flex: 1; flex-direction: column; }
+
         header {
             background-color: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
@@ -38,16 +81,14 @@
         .brand-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 0.5rem; }
         .brand-logo span { color: var(--accent-gold); }
 
-        .user-badge {
-            display: flex; align-items: center; gap: 0.75rem;
-            background: rgba(255, 255, 255, 0.05); padding: 0.5rem 1rem;
-            border-radius: 999px; border: 1px solid var(--border-color); font-size: 0.9rem;
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.1); color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.4rem 0.8rem;
+            border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+            display: flex; align-items: center; gap: 0.4rem;
         }
 
         main { flex: 1; max-width: 1200px; width: 100%; margin: 2rem auto; padding: 0 1.5rem; }
-
-        .page-header { margin-bottom: 2rem; }
-        .page-header h1 { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 700; }
 
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
         .stat-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem; }
@@ -69,6 +110,7 @@
         tr:hover { background-color: rgba(255, 255, 255, 0.02); }
 
         .badge-points { background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .btn-edit-points { background: rgba(245, 158, 11, 0.2); color: var(--accent-gold); border: 1px solid var(--accent-gold); padding: 0.35rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.5rem; }
         .btn-approve { background: var(--success-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
         .btn-reject { background: var(--danger-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem; }
         .empty-message { text-align: center; padding: 2rem; color: var(--text-muted); }
@@ -76,182 +118,261 @@
 </head>
 <body>
 
-    <header>
-        <div class="brand-logo">
-            <i data-lucide="shield-check"></i>
-            CLUBE <span>NUTRIFORMA</span> <small style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.5rem;">ADMIN</small>
+    <!-- 1. TELA DE LOGIN -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="brand-logo" style="justify-content: center; margin-bottom: 1rem;">
+                <i data-lucide="shield-check" style="color: var(--accent-gold);"></i>
+                CLUBE <span>NUTRIFORMA</span>
+            </div>
+            <h2>Acesso Restrito</h2>
+            <p>Informe suas credenciais para acessar o painel admin.</p>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Usuário</label>
+                    <input type="text" id="login-user" placeholder="admin" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-login">Entrar no Painel</button>
+            </form>
         </div>
-        <div class="user-badge">
-            <i data-lucide="user"></i>
-            <span>Administrador</span>
-        </div>
-    </header>
+    </div>
 
-    <main>
-        <div class="page-header">
-            <h1>Painel de Controle</h1>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Gerencie os clientes cadastrados e aprovações de pontos.</p>
-        </div>
+    <!-- 2. PAINEL ADMIN (OCULTO ATÉ LOGIN) -->
+    <div id="admin-panel">
+        <header>
+            <div class="brand-logo">
+                <i data-lucide="shield-check"></i>
+                CLUBE <span>NUTRIFORMA</span> <small style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.5rem;">ADMIN</small>
+            </div>
+            <button class="btn-logout" id="btn-logout">
+                <i data-lucide="log-out"></i> Sair
+            </button>
+        </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon"><i data-lucide="users"></i></div>
-                <div class="stat-info">
-                    <h3>Total de Clientes</h3>
-                    <p id="total-clients">0</p>
+        <main>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i data-lucide="users"></i></div>
+                    <div class="stat-info">
+                        <h3>Total de Clientes</h3>
+                        <p id="total-clients">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i data-lucide="award"></i></div>
+                    <div class="stat-info">
+                        <h3>Pontos Distribuídos</h3>
+                        <p id="total-points">0</p>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i data-lucide="award"></i></div>
-                <div class="stat-info">
-                    <h3>Pontos Distribuídos</h3>
-                    <p id="total-points">0</p>
+
+            <!-- SEÇÃO: Solicitações Pendentes -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>Aprovações Pendentes</h2>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Ação Realizada</th>
+                                <th>Pontos</th>
+                                <th>Comprovante</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-table-body">
+                            <tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
 
-        <!-- SEÇÃO: Solicitações Pendentes -->
-        <div class="content-card">
-            <div class="card-header">
-                <h2>Aprovações Pendentes</h2>
-            </div>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Ação Realizada</th>
-                            <th>Pontos</th>
-                            <th>Comprovante</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pending-table-body">
-                        <tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- SEÇÃO: Clientes Cadastrados -->
-        <div class="content-card">
-            <div class="card-header">
-                <h2>Clientes Cadastrados</h2>
-                <div class="search-box">
-                    <i data-lucide="search"></i>
-                    <input type="text" id="search-input" placeholder="Buscar por nome ou CPF...">
+            <!-- SEÇÃO: Clientes Cadastrados -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>Clientes Cadastrados</h2>
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="search-input" placeholder="Buscar por nome ou CPF...">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Telefone</th>
+                                <th>Pontos Acumulados</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body">
+                            <tr><td colspan="5" class="empty-message">Carregando dados...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>CPF</th>
-                            <th>Telefone</th>
-                            <th>Data Cadastro</th>
-                            <th>Pontos Acumulados</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-table-body">
-                        <tr><td colspan="5" class="empty-message">Carregando dados do Firebase...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
+    <!-- FIREBASE & SCRIPT DE LÓGICA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Substitua com suas chaves reais do Firebase
+        // Cole aqui suas credenciais reais do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
-            authDomain: "nutriforma-fidelidade.firebaseapp.com",
-            projectId: "nutriforma-fidelidade",
-            storageBucket: "nutriforma-fidelidade.firebasestorage.app",
-            messagingSenderId: "368276912872",
-            appId: "1:368276912872:web:a7f54c67881f39fb55675d"
-        };
+          apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
+          authDomain: "nutriforma-fidelidade.firebaseapp.com",
+          projectId: "nutriforma-fidelidade",
+          storageBucket: "nutriforma-fidelidade.firebasestorage.app",
+          messagingSenderId: "368276912872",
+          appId: "1:368276912872:web:a7f54c67881f39fb55675d"
+};
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let clientsData = [];
+        // --- AUTENTICAÇÃO SIMPLES DO ADMIN ---
+        const loginForm = document.getElementById('login-form');
+        const loginScreen = document.getElementById('login-screen');
+        const adminPanel = document.getElementById('admin-panel');
+        const btnLogout = document.getElementById('btn-logout');
 
+        // Defina usuário e senha do Admin aqui:
+        const ADMIN_USER = "Nutriforma";
+        const ADMIN_PASS = "Nutri123";
+
+        // Verifica se já está logado na sessão
+        if (sessionStorage.getItem('adminLogged') === 'true') {
+            mostrarPainel();
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const u = document.getElementById('login-user').value;
+            const p = document.getElementById('login-pass').value;
+
+            if (u === ADMIN_USER && p === ADMIN_PASS) {
+                sessionStorage.setItem('adminLogged', 'true');
+                mostrarPainel();
+            } else {
+                alert('Usuário ou senha incorretos!');
+            }
+        });
+
+        btnLogout.addEventListener('click', () => {
+            sessionStorage.removeItem('adminLogged');
+            loginScreen.style.display = 'flex';
+            adminPanel.style.display = 'none';
+        });
+
+        function mostrarPainel() {
+            loginScreen.style.display = 'none';
+            adminPanel.style.display = 'flex';
+            carregarDadosFirebase();
+        }
+
+        // --- LÓGICA DE DADOS FIREBASE ---
+        let clientsData = [];
         const tableBody = document.getElementById('admin-table-body');
         const pendingTable = document.getElementById('pending-table-body');
         const totalClientsEl = document.getElementById('total-clients');
         const totalPointsEl = document.getElementById('total-points');
         const searchInput = document.getElementById('search-input');
 
-        // 1. Busca os clientes da coleção "clientes" (mapeando name, cpf, phone, pts)
-        onSnapshot(collection(db, "clientes"), (snapshot) => {
-            clientsData = [];
-            let sumPoints = 0;
+        function carregarDadosFirebase() {
+            // 1. Clientes
+            onSnapshot(collection(db, "clientes"), (snapshot) => {
+                clientsData = [];
+                let sumPoints = 0;
 
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const pontos = Number(data.pts || data.pontos || 0);
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const pontos = Number(data.pts || data.pontos || 0);
 
-                let dataFormatted = 'N/A';
-                if (data.createdAt) {
-                    const dateObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
-                    dataFormatted = dateObj.toLocaleDateString('pt-BR');
-                }
-
-                clientsData.push({
-                    id: docSnap.id,
-                    nome: data.name || data.nome || 'Sem nome',
-                    cpf: data.cpf || docSnap.id || 'N/A',
-                    phone: data.phone || 'N/A',
-                    dataCadastro: dataFormatted,
-                    pontos: pontos
+                    clientsData.push({
+                        id: docSnap.id, // Geralmente o CPF sem formatação ou ID
+                        nome: data.name || data.nome || 'Sem nome',
+                        cpf: data.cpf || docSnap.id || 'N/A',
+                        phone: data.phone || 'N/A',
+                        pontos: pontos
+                    });
+                    sumPoints += pontos;
                 });
-                sumPoints += pontos;
+
+                totalClientsEl.textContent = clientsData.length;
+                totalPointsEl.textContent = sumPoints.toLocaleString('pt-BR');
+
+                renderTable(clientsData);
             });
 
-            totalClientsEl.textContent = clientsData.length;
-            totalPointsEl.textContent = sumPoints.toLocaleString('pt-BR');
+            // 2. Solicitações Pendentes
+            onSnapshot(collection(db, "solicitacoes"), (snapshot) => {
+                pendingTable.innerHTML = '';
+                let hasPending = false;
 
-            renderTable(clientsData);
-        }, (error) => {
-            console.error("Erro ao carregar clientes:", error);
-            tableBody.innerHTML = `<tr><td colspan="5" class="empty-message" style="color: var(--danger-color);">Erro ao carregar clientes do Firebase.</td></tr>`;
-        });
+                snapshot.forEach((solDoc) => {
+                    const data = solDoc.data();
+                    if (data.status === 'pendente') {
+                        hasPending = true;
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><strong>${data.clienteNome || 'Cliente'}</strong></td>
+                            <td>${data.acao || 'Ação'}</td>
+                            <td><span class="badge-points">+${data.pontos || 0} pts</span></td>
+                            <td>${data.comprovanteUrl ? `<a href="${data.comprovanteUrl}" target="_blank" style="color: #3B82F6;">Ver Anexo</a>` : 'Sem foto'}</td>
+                            <td>
+                                <button class="btn-approve" onclick="aprovarSolicitacao('${solDoc.id}', '${data.clienteCpf}', ${data.pontos})"><i data-lucide="check"></i> Aprovar</button>
+                                <button class="btn-reject" onclick="recusarSolicitacao('${solDoc.id}')"><i data-lucide="x"></i> Recusar</button>
+                            </td>
+                        `;
+                        pendingTable.appendChild(row);
+                    }
+                });
 
-        // 2. Busca solicitações pendentes
-        onSnapshot(collection(db, "solicitacoes"), (snapshot) => {
-            pendingTable.innerHTML = '';
-            let hasPending = false;
-
-            snapshot.forEach((solDoc) => {
-                const data = solDoc.data();
-                if (data.status === 'pendente') {
-                    hasPending = true;
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><strong>${data.clienteNome || 'Cliente'}</strong></td>
-                        <td>${data.acao || 'Ação'}</td>
-                        <td><span class="badge-points">+${data.pontos || 0} pts</span></td>
-                        <td>${data.comprovanteUrl ? `<a href="${data.comprovanteUrl}" target="_blank" style="color: #3B82F6;">Ver Anexo</a>` : 'Sem foto'}</td>
-                        <td>
-                            <button class="btn-approve" onclick="aprovarSolicitacao('${solDoc.id}', '${data.clienteCpf}', ${data.pontos})"><i data-lucide="check"></i> Aprovar</button>
-                            <button class="btn-reject" onclick="recusarSolicitacao('${solDoc.id}')"><i data-lucide="x"></i> Recusar</button>
-                        </td>
-                    `;
-                    pendingTable.appendChild(row);
+                if (!hasPending) {
+                    pendingTable.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>`;
                 }
+                lucide.createIcons();
             });
+        }
 
-            if (!hasPending) {
-                pendingTable.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>`;
+        // --- FUNÇÃO PARA LANÇAR/EDITAR PONTOS MANUAMENTE ---
+        window.alterarPontosManualmente = async (clienteId, nomeCliente, pontosAtuais) => {
+            const valorInput = prompt(`Lançamento de Pontos em Loja - ${nomeCliente}\n\nPontos atuais: ${pontosAtuais}\nDigite a quantidade de pontos a Adicionar ou Deduzir:\n(Ex: 100 para somar, ou -50 para subtrair)`);
+
+            if (valorInput !== null) {
+                const quantidade = Number(valorInput);
+
+                if (isNaN(quantidade) || quantidade === 0) {
+                    alert("Digite um valor numérico válido.");
+                    return;
+                }
+
+                try {
+                    const clientRef = doc(db, "clientes", clienteId);
+                    await updateDoc(clientRef, {
+                        pts: increment(quantidade)
+                    });
+                    alert(`✅ Pontuação atualizada com sucesso!\nForam ${quantidade > 0 ? 'adicionados' : 'removidos'} ${Math.abs(quantidade)} pontos.`);
+                } catch (err) {
+                    console.error("Erro ao alterar pontos:", err);
+                    alert("Erro ao atualizar os pontos do cliente.");
+                }
             }
-            lucide.createIcons();
-        });
+        };
 
-        // Funções de Aprovar e Recusar
+        // Aprovação de Provas
         window.aprovarSolicitacao = async (solId, clienteCpf, pontos) => {
             try {
                 if (clienteCpf) {
@@ -262,18 +383,12 @@
                 alert("✅ Comprovação aprovada e pontos creditados!");
             } catch (err) {
                 console.error("Erro ao aprovar:", err);
-                alert("Erro ao aprovar a solicitação.");
             }
         };
 
         window.recusarSolicitacao = async (solId) => {
             if (confirm("Recusar esta solicitação?")) {
-                try {
-                    await updateDoc(doc(db, "solicitacoes", solId), { status: "recusado" });
-                    alert("❌ Solicitação recusada.");
-                } catch (err) {
-                    console.error("Erro ao recusar:", err);
-                }
+                await updateDoc(doc(db, "solicitacoes", solId), { status: "recusado" });
             }
         };
 
@@ -291,11 +406,16 @@
                     <td><strong>${client.nome}</strong></td>
                     <td>${client.cpf}</td>
                     <td>${client.phone}</td>
-                    <td>${client.dataCadastro}</td>
                     <td><span class="badge-points">${client.pontos} pts</span></td>
+                    <td>
+                        <button class="btn-edit-points" onclick="alterarPontosManualmente('${client.id}', '${client.nome}', ${client.pontos})">
+                            <i data-lucide="plus-circle"></i> Ajustar Pontos
+                        </button>
+                    </td>
                 `;
                 tableBody.appendChild(row);
             });
+            lucide.createIcons();
         }
 
         searchInput.addEventListener('input', (e) => {
