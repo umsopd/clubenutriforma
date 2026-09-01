@@ -2,9 +2,9 @@
 <html lang="pt-BR">
 <head>
     <link rel="manifest" href="admin-manifest.json">
-<meta name="theme-color" content="#111827">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Nutri Admin">
+    <meta name="theme-color" content="#111827">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Nutri Admin">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo | Clube Nutriforma</title>
@@ -111,6 +111,9 @@
         
         .btn-action { background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--border-color); padding: 0.35rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-right: 0.3rem; }
         .btn-action:hover { background: rgba(255, 255, 255, 0.1); }
+        .btn-action.delete { color: var(--danger-color); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); }
+        .btn-action.delete:hover { background: rgba(239, 68, 68, 0.2); }
+        
         .btn-approve { background: var(--success-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
         .btn-reject { background: var(--danger-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem; }
         .empty-message { text-align: center; padding: 2rem; color: var(--text-muted); }
@@ -126,8 +129,10 @@
             padding: 2rem; border-radius: 12px; width: 100%; max-width: 480px;
         }
         .modal-card h3 { font-family: 'Montserrat', sans-serif; margin-bottom: 1.5rem; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1.5rem; }
+        .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.8rem; }
         .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; }
+        .btn-danger-modal { background: rgba(239, 68, 68, 0.15); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; }
+        .btn-danger-modal:hover { background: rgba(239, 68, 68, 0.3); }
     </style>
 </head>
 <body>
@@ -268,8 +273,15 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" id="btn-close-modal">Cancelar</button>
-                    <button type="submit" class="btn-primary">Salvar Cliente</button>
+                    <div>
+                        <button type="button" class="btn-danger-modal" id="btn-delete-modal" style="display: none;">
+                            <i data-lucide="trash-2"></i> Excluir
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 0.8rem;">
+                        <button type="button" class="btn-secondary" id="btn-close-modal">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar Cliente</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -278,16 +290,16 @@
     <!-- FIREBASE & SCRIPT DE LÓGICA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, query, where, getDocs, writeBatch, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Substitua com suas credenciais do Firebase
+        // Credenciais do Firebase
         const firebaseConfig = {
-        apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
-        authDomain: "nutriforma-fidelidade.firebaseapp.com",
-        projectId: "nutriforma-fidelidade",
-        storageBucket: "nutriforma-fidelidade.firebasestorage.app",
-        messagingSenderId: "368276912872",
-        appId: "1:368276912872:web:a7f54c67881f39fb55675d"
+            apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
+            authDomain: "nutriforma-fidelidade.firebaseapp.com",
+            projectId: "nutriforma-fidelidade",
+            storageBucket: "nutriforma-fidelidade.firebasestorage.app",
+            messagingSenderId: "368276912872",
+            appId: "1:368276912872:web:a7f54c67881f39fb55675d"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -338,6 +350,7 @@
         const clientForm = document.getElementById('client-form');
         const btnAddClient = document.getElementById('btn-add-client');
         const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnDeleteModal = document.getElementById('btn-delete-modal');
 
         btnAddClient.addEventListener('click', () => abrirModalCliente());
         btnCloseModal.addEventListener('click', () => modal.style.display = 'none');
@@ -405,7 +418,6 @@
             const phone = document.getElementById('client-phone').value.trim();
             const pts = Number(document.getElementById('client-pts').value) || 0;
 
-            // Remove caracteres especiais para criar a chave limpa no documento se preferir
             const cleanCpf = cpf.replace(/\D/g, '');
             const targetDocId = docId || cleanCpf || cpf;
 
@@ -413,11 +425,9 @@
                 const clientRef = doc(db, "clientes", targetDocId);
                 
                 if (docId) {
-                    // Edição de cliente existente
                     await updateDoc(clientRef, { name, cpf, phone });
                     alert("✅ Cliente atualizado com sucesso!");
                 } else {
-                    // Novo cliente
                     await setDoc(clientRef, {
                         name, cpf, phone, pts,
                         createdAt: serverTimestamp()
@@ -437,25 +447,59 @@
             document.getElementById('client-form').reset();
             
             if (client) {
-                // Modo Edição
                 document.getElementById('modal-title').textContent = "Editar Cliente";
                 document.getElementById('client-doc-id').value = client.id;
                 document.getElementById('client-cpf').value = client.cpf;
                 document.getElementById('client-name').value = client.nome;
                 document.getElementById('client-phone').value = client.phone;
-                document.getElementById('group-initial-pts').style.display = 'none'; // Pontos são alterados pelo botão de ajuste
+                document.getElementById('group-initial-pts').style.display = 'none';
+                
+                // Exibe e configura o botão de exclusão
+                btnDeleteModal.style.display = 'inline-flex';
+                btnDeleteModal.onclick = () => window.adminDeleteCustomer(client.id, client.cpf, client.nome);
             } else {
-                // Modo Novo Cadastro
                 document.getElementById('modal-title').textContent = "Novo Cliente";
                 document.getElementById('client-doc-id').value = "";
                 document.getElementById('group-initial-pts').style.display = 'block';
+                btnDeleteModal.style.display = 'none';
             }
             modal.style.display = 'flex';
+            lucide.createIcons();
         }
 
         window.editarCliente = (id) => {
             const client = clientsData.find(c => c.id === id);
             if (client) abrirModalCliente(client);
+        };
+
+        // EXCLUSÃO DE CLIENTE PELO ADMIN
+        window.adminDeleteCustomer = async (docId, cpf, name) => {
+            const confirmDelete = confirm(`Tem certeza que deseja excluir o cadastro de "${name}" (CPF: ${cpf})?\n\nEsta ação apagará o cliente do sistema e não poderá ser desfeita.`);
+
+            if (!confirmDelete) return;
+
+            try {
+                // 1. Remove o documento do cliente
+                await deleteDoc(doc(db, "clientes", docId));
+
+                // 2. Limpa solicitações pendentes vinculadas a este CPF
+                const cleanCpf = cpf.replace(/\D/g, '');
+                const q = query(collection(db, "solicitacoes"), where("clienteCpf", "in", [cpf, cleanCpf]));
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                    const batch = writeBatch(db);
+                    snapshot.docs.forEach((docSnap) => batch.delete(docSnap.ref));
+                    await batch.commit();
+                }
+
+                alert(`✅ Cadastro de ${name} excluído com sucesso!`);
+                modal.style.display = 'none';
+
+            } catch (error) {
+                console.error("Erro ao excluir cliente: ", error);
+                alert("Erro ao excluir cliente: " + error.message);
+            }
         };
 
         window.alterarPontosManualmente = async (clienteId, nomeCliente, pontosAtuais) => {
@@ -510,6 +554,9 @@
                         <button class="btn-action" onclick="alterarPontosManualmente('${client.id}', '${client.nome}', ${client.pontos})">
                             <i data-lucide="plus-circle"></i> Pontos
                         </button>
+                        <button class="btn-action delete" onclick="adminDeleteCustomer('${client.id}', '${client.cpf}', '${client.nome}')">
+                            <i data-lucide="trash-2"></i> Excluir
+                        </button>
                     </td>
                 `;
                 tableBody.appendChild(row);
@@ -528,13 +575,14 @@
 
         lucide.createIcons();
 
+        // REGISTRO DO PWA SERVICE WORKER
         if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./admin-sw.js')
-      .then(() => console.log('Admin PWA Registrado!'))
-      .catch((err) => console.log('Erro Admin PWA:', err));
-  });
-}
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./admin-sw.js')
+                    .then(() => console.log('Admin PWA Registrado!'))
+                    .catch((err) => console.log('Erro Admin PWA:', err));
+            });
+        }
     </script>
 </body>
 </html>
