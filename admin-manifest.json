@@ -1,19 +1,20 @@
 {
-  "name": "Nutriforma Admin",
+  "name": "Nutriforma Painel Admin",
   "short_name": "Nutri Admin",
   "description": "Painel Administrativo Nutriforma",
   "start_url": "./admin.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#111827",
-  "theme_color": "#111827",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
   "icons": [
     {
-      "src": "https://i.ibb.co/cS6GKZKt/Whats-App-Image-2026-09-01-at-12-54-39.jpg",
+      "src": "https://i.ibb.co/JRDznx3P/Chat-GPT-Image-1-de-set-de-2026-13-33-46.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://i.ibb.co/cS6GKZKt/Whats-App-Image-2026-09-01-at-12-54-39.jpg",
+      "src": "https://i.ibb.co/JRDznx3P/Chat-GPT-Image-1-de-set-de-2026-13-33-46.png",
       "sizes": "512x512",
       "type": "image/png"
     }
