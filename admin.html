@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="manifest" href="admin-manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nutri Admin">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo | Clube Nutriforma</title>
@@ -523,6 +527,14 @@
         });
 
         lucide.createIcons();
+
+        if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./admin-sw.js')
+      .then(() => console.log('Admin PWA Registrado!'))
+      .catch((err) => console.log('Erro Admin PWA:', err));
+  });
+}
     </script>
 </body>
 </html>
