@@ -341,9 +341,6 @@
     }
 
     .auth-tab.active { color: var(--nutri-red); border-bottom: 2px solid var(--nutri-red); }
-    
-    .btn-primary { background: var(--nutri-red); color: #fff; border: 0; padding: 10px 14px; border-radius: 10px; font-weight: 800; cursor: pointer; }
-    .btn-secondary { background: #eee; color: #333; border: 0; padding: 10px 14px; border-radius: 10px; font-weight: 800; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -567,52 +564,51 @@
     </div>
   </div>
 
-  <!-- MODAL DE PESQUISA DE SATISFAÇÃO -->
-  <div class="modal-overlay" id="survey-modal">
+  <!-- MODAL DE PESQUISA -->
+  <div class="modal-overlay" id="modal-pesquisa">
     <div class="modal-sheet">
-      <button class="close-modal" onclick="document.getElementById('survey-modal').style.display='none'">&times;</button>
-      <h2>📋 Pesquisa de Satisfação</h2>
-      <form id="survey-form">
+      <button class="close-modal" onclick="fecharModalPesquisa()">&times;</button>
+      <div style="text-align:center;">
+        <h2 style="font-size:20px; margin-bottom:8px;">💬 Responder Pesquisa</h2>
+        <p class="small-text" style="margin-bottom:20px;">Sua opinião é fundamental! Responda às perguntas abaixo e ganhe +10 pontos automaticamente.</p>
+        
+        <form id="survey-form">
           <div class="form-group">
-              <label>Como avalia o atendimento?</label>
-              <select id="survey-rating-atendimento" required class="input-select">
-                  <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
-                  <option value="4">⭐⭐⭐⭐ - Muito bom</option>
-                  <option value="3">⭐⭐⭐ - Regular</option>
-                  <option value="2">⭐⭐ - Ruim</option>
-                  <option value="1">⭐ - Péssimo</option>
-              </select>
+            <label>Como você avalia nosso atendimento?</label>
+            <select id="survey-rating-atendimento" class="form-control" required>
+              <option value="Excelente">Excelente</option>
+              <option value="Bom">Bom</option>
+              <option value="Regular">Regular</option>
+            </select>
           </div>
 
           <div class="form-group">
-              <label>Variedade e estoque de produtos:</label>
-              <select id="survey-rating-produtos" required class="input-select">
-                  <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
-                  <option value="4">⭐⭐⭐⭐ - Boa</option>
-                  <option value="3">⭐⭐⭐ - Regular</option>
-                  <option value="2">⭐⭐ - Pouca variedade</option>
-              </select>
+            <label>Qualidade dos produtos:</label>
+            <select id="survey-rating-produtos" class="form-control" required>
+              <option value="Excelente">Excelente</option>
+              <option value="Boa">Boa</option>
+              <option value="Regular">Regular</option>
+            </select>
           </div>
 
           <div class="form-group">
-              <label>O que acha do Clube de Fidelidade?</label>
-              <select id="survey-clube" required class="input-select">
-                  <option value="Excelente">Fácil de usar e vantajoso</option>
-                  <option value="Bom">Bom, mas quero aprender mais</option>
-                  <option value="Melhorar">Pode melhorar</option>
-              </select>
+            <label>O que acha do nosso Clube de Benefícios?</label>
+            <select id="survey-clube" class="form-control" required>
+              <option value="Muito Bom">Muito Bom</option>
+              <option value="Pode Melhorar">Pode Melhorar</option>
+            </select>
           </div>
 
           <div class="form-group">
-              <label>Sugestão de produto ou melhoria:</label>
-              <textarea id="survey-feedback" rows="3" placeholder="Escreva aqui..." class="input-textarea"></textarea>
+            <label>Sugestão ou Comentário:</label>
+            <input type="text" id="survey-feedback" class="form-control" placeholder="Deixe seu comentário...">
           </div>
 
-          <div style="display:flex; gap: 0.5rem; margin-top: 1rem;">
-              <button type="button" class="btn-secondary" onclick="document.getElementById('survey-modal').style.display='none'">Cancelar</button>
-              <button type="submit" class="btn-primary" style="flex:1;">Enviar (+10 pts)</button>
-          </div>
-      </form>
+          <button type="submit" id="btn-iniciar-pesquisa" class="nutri-btn primary" style="width:100%; margin-top:15px;">
+            Enviar Pesquisa e Receber Pontos
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -795,7 +791,7 @@
           goal: newGoal
         });
 
-        modal('<h2>✅ Perfil Atualizado!</h2><p class="small-text">Suas informações e seu objetivo foram salvos com sucesso.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok</button>');
+        modal('<h2>✅ Perfil Atualizado!</h2><p class="small-text">Suas informações foram salvas.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok</button>');
       } catch (e) {
         console.error(e);
         alert("Erro ao atualizar perfil: " + e.message);
@@ -894,7 +890,7 @@
     function compressImage(file, maxWidth = 1024, quality = 0.7) {
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
-          reject(new Error("O processamento da imagem demorou muito. Tente uma imagem menor."));
+          reject(new Error("O processamento demorou muito. Tente uma imagem menor."));
         }, 10000);
 
         const reader = new FileReader();
@@ -927,26 +923,19 @@
             resolve(compressedBase64);
           };
 
-          img.onerror = (err) => {
-            clearTimeout(timer);
-            reject(err);
-          };
+          img.onerror = (err) => { clearTimeout(timer); reject(err); };
         };
 
-        reader.onerror = (err) => {
-          clearTimeout(timer);
-          reject(err);
-        };
+        reader.onerror = (err) => { clearTimeout(timer); reject(err); };
       });
     }
 
     window.abrirModalPesquisa = () => {
-      const surveyModal = document.getElementById('survey-modal');
-      if (surveyModal) {
-          surveyModal.style.display = 'flex';
-      } else {
-          console.error("Modal 'survey-modal' não foi encontrado no HTML.");
-      }
+      document.getElementById('modal-pesquisa').classList.add('show');
+    };
+
+    window.fecharModalPesquisa = () => {
+      document.getElementById('modal-pesquisa').classList.remove('show');
     };
 
     function openActionModal(id) {
@@ -1026,12 +1015,12 @@
 
         modal(`
           <h2>📩 Solicitação enviada!</h2>
-          <p class="small-text">Sua comprovação referente a <b>${title}</b> foi otimizada e enviada para a equipe de aprovações!</p>
+          <p class="small-text">Sua comprovação referente a <b>${title}</b> foi enviada com sucesso!</p>
           <button class="nutri-btn primary" style="width:100%; margin-top:15px;" onclick="closeM()">Ok, entendi</button>
         `);
       } catch (err) {
         console.error("Erro ao enviar solicitação: ", err);
-        alert("Erro ao processar imagem: " + (err.message || "Tente novamente com outro arquivo."));
+        alert("Erro ao processar imagem: " + (err.message || "Tente novamente."));
         btn.disabled = false;
         btn.textContent = "Enviar para Análise";
       }
@@ -1090,25 +1079,11 @@
         </div>
       `;
       modal(html);
-
-      setTimeout(() => {
-        document.querySelectorAll('#edit-profile-form input, #edit-profile-form select').forEach(input => {
-          input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              saveProfile();
-            }
-          });
-        });
-      }, 100);
     }
 
     async function deleteAccount() {
       if (!currentUserCPF) return;
-
-      const confirmDelete = confirm("Tem certeza de que deseja excluir permanentemente o seu cadastro? Seus pontos acumulados serão perdidos e esta ação não poderá ser desfeita.");
-
-      if (!confirmDelete) return;
+      if (!confirm("Tem certeza de que deseja excluir permanentemente o seu cadastro?")) return;
 
       try {
         await db.collection("clientes").doc(currentUserCPF).delete();
@@ -1144,24 +1119,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('#form-login input').forEach(input => {
-        input.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            handleLogin();
-          }
-        });
-      });
-
-      document.querySelectorAll('#form-register input').forEach(input => {
-        input.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            handleRegister();
-          }
-        });
-      });
-
       const surveyForm = document.getElementById('survey-form');
       if (surveyForm) {
         surveyForm.addEventListener('submit', async (e) => {
@@ -1179,8 +1136,7 @@
               produtos: document.getElementById('survey-rating-produtos').value,
               experienciaClube: document.getElementById('survey-clube').value,
               feedback: document.getElementById('survey-feedback').value,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-              pontosLiberados: false
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
           };
 
           try {
@@ -1195,8 +1151,8 @@
                   createdAt: firebase.firestore.FieldValue.serverTimestamp()
               });
 
-              alert("🎉 Obrigado! Sua pesquisa foi enviada e 10 pontos foram solicitados!");
-              document.getElementById('survey-modal').style.display = 'none';
+              alert("🎉 Obrigado! Sua pesquisa foi enviada e a solicitação dos 10 pontos foi realizada!");
+              fecharModalPesquisa();
               surveyForm.reset();
           } catch (err) {
               console.error("Erro ao enviar pesquisa:", err);
