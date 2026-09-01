@@ -158,6 +158,7 @@
       border-radius: 18px;
       padding: 16px;
       box-shadow: 0 4px 15px var(--nutri-shadow);
+      cursor: pointer;
     }
 
     .hero-section {
@@ -560,7 +561,6 @@
 
   <script>
     // --- CONFIGURAÇÃO DO FIREBASE ---
-    // ATENÇÃO: Substitua os campos abaixo pelas chaves reais do seu Firebase Console
     const firebaseConfig = {
       apiKey: "AIzaSyDdpINdJ1zZmfW0CUNF8lypHU1ZNEYuHn8",
       authDomain: "nutriforma-fidelidade.firebaseapp.com",
@@ -581,14 +581,14 @@
     let unsubscribeUserListener = null;
 
     const A = [
-      { id: 'buy', icon: '🛒', title: 'Fazer uma compra', pts: 10, desc: 'Ganhe pontos a cada pedido vinculado ao seu CPF.' },
+      { id: 'buy', icon: '🛒', title: 'Fazer uma compra', pts: 10, desc: 'Ganhe pontos a cada pedido. Anexe o comprovante ou nota do seu pedido.' },
       { id: 'refer', icon: '👥', title: 'Indicar um amigo', pts: 30, desc: 'Envie seu cupom exclusivo para amigos.' },
-      { id: 'friend_buy', icon: '🎉', title: 'Amigo faz a 1ª compra', pts: 50, desc: 'Envie o comprovante da compra do amigo com seu cupom.' },
-      { id: 'review', icon: '⭐', title: 'Avaliar uma compra', pts: 10, desc: 'Envie sua opinião sobre nossos produtos.' },
-      { id: 'insta', icon: '📸', title: 'Marcar @Nutriforma', pts: 15, desc: 'Poste nos Stories usando nossos produtos.' },
-      { id: 'birthday', icon: '🎂', title: 'Aniversário', pts: 30, desc: 'Sua pontuação no mês do aniversário.' },
-      { id: 'promo', icon: '🔥', title: 'Participar de campanha', pts: 20, desc: 'Campanhas e desafios sazonais.' },
-      { id: 'survey', icon: '💬', title: 'Responder pesquisa', pts: 10, desc: 'Ajude a melhorar nossos serviços.' }
+      { id: 'friend_buy', icon: '🎉', title: 'Amigo faz a 1ª compra', pts: 50, desc: 'Envie o comprovante da compra do seu amigo que utilizou seu cupom.' },
+      { id: 'review', icon: '⭐', title: 'Avaliar uma compra', pts: 10, desc: 'Envie print da sua avaliação sobre nossos produtos.' },
+      { id: 'insta', icon: '📸', title: 'Marcar @Nutriforma', pts: 15, desc: 'Poste nos Stories usando nossos produtos e envie o print.' },
+      { id: 'birthday', icon: '🎂', title: 'Aniversário', pts: 30, desc: 'Envie foto do seu documento para comprovação no mês de aniversário.' },
+      { id: 'promo', icon: '🔥', title: 'Participar de campanha', pts: 20, desc: 'Envie o print da sua participação nas campanhas sazonais.' },
+      { id: 'survey', icon: '💬', title: 'Responder pesquisa', pts: 10, desc: 'Ajude a melhorar nossos serviços com seu comprovante de resposta.' }
     ];
 
     const R = [
@@ -832,37 +832,99 @@
       ).join('');
     }
 
+    // Função utilitária para converter arquivo selecionado em String Base64
+    function convertFileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+      });
+    }
+
+    // Modal Dinâmico de Ações com Upload Real para o Firestore
     function openActionModal(id) {
       const item = A.find(a => a.id === id);
-      let html = `<h2>${item.icon} ${item.title}</h2><p class="small-text">${item.desc}</p>`;
+      
+      if (id === 'refer') {
+        const refCode = (userProfile.name || 'CLIENTE').split(' ')[0].toUpperCase() + '10';
+        let html = `
+          <h2>${item.icon} ${item.title}</h2>
+          <p class="small-text">${item.desc}</p>
+          <p class="small-text" style="margin-top:10px;">Seu código exclusivo de indicação é: <b>${refCode}</b></p>
+          <button class="nutri-btn primary" style="width:100%; margin-top:15px;" onclick="copy();">Copiar e Compartilhar</button>
+        `;
+        modal(html);
+        return;
+      }
+
+      let html = `
+        <h2>${item.icon} ${item.title}</h2>
+        <p class="small-text">${item.desc}</p>
+        
+        <form id="submission-form" style="margin-top:12px;" onsubmit="submitProofToAdmin(event, '${item.title}', ${item.pts})">
+          <div class="form-group">
+            <label>Foto / Print / Comprovante (Obrigatório)</label>
+            <input type="file" id="proof-input" class="form-control" accept="image/*" required>
+          </div>
+          <button type="submit" id="btn-submit-proof" class="nutri-btn primary" style="width:100%; margin-top:10px;">Enviar para Análise</button>
+        </form>
+      `;
 
       if (id === 'buy') {
         html += `
-          <p class="small-text"><b>Vincule seu CPF (${userProfile.cpf || ''}):</b> Informe sempre seu CPF na finalização da compra no site ou pelo WhatsApp para o acúmulo de pontos.</p>
-          <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-            <a href="https://l.instagram.com/?u=https%3A%2F%2Fnutriforma11.lojavirtualnuvem.com.br%2F&e=AUC-xm9BvhZMuv57EcVQQBc6Gq8Fr2E_8d-wp_byDJPu5NcJ0bxrVQ10GUmc6DmpmgmIaazoHsfSKqe3LtN81_kp3M2unvjmU9fsYPU72DUTSPETO6_CN74bkSSiNinTLJyIOR8u-B4" target="_blank" class="nutri-btn primary" style="width:100%;">🌐 Comprar no Site</a>
-            <a href="https://l.instagram.com/?u=https%3A%2F%2Fwa.me%2F554188215348%3Ftext%3DOl%25C3%25A1%2520%25F0%259F%2591%258B%252C%2520vim%2520pelo%2520Instagram%2520da%2520Nutri%2520Forma%2520e%2520quero%2520saber%2520mais%2520sobre%2520suplementos&e=AUB8vG0ealTOuzTFD9wiSnsEXNI9_w3OicIUaLKxDCEc_SfCWXtIReQz1u0g0_ITcDKXUtfnDSFfklfUTUJyoKriwew1Lp6k8097ladDDrmrhSX0eN1Eitmalph72wFgA6iWRMCWdAw" target="_blank" class="nutri-btn whatsapp" style="width:100%;">💬 Comprar pelo WhatsApp</a>
+          <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px; text-align:center;">
+            <p class="small-text" style="margin-bottom:8px;">Prefere comprar agora antes de enviar?</p>
+            <div style="display:flex; gap:8px;">
+              <a href="https://l.instagram.com/?u=https%3A%2F%2Fnutriforma11.lojavirtualnuvem.com.br%2F&e=AUC-xm9BvhZMuv57EcVQQBc6Gq8Fr2E_8d-wp_byDJPu5NcJ0bxrVQ10GUmc6DmpmgmIaazoHsfSKqe3LtN81_kp3M2unvjmU9fsYPU72DUTSPETO6_CN74bkSSiNinTLJyIOR8u-B4" target="_blank" class="nutri-btn outline" style="flex:1; font-size:10px;">🌐 Site</a>
+              <a href="https://l.instagram.com/?u=https%3A%2F%2Fwa.me%2F554188215348%3Ftext%3DOl%25C3%25A1%2520%25F0%259F%2591%258B%252C%2520vim%2520pelo%2520Instagram%2520da%2520Nutri%2520Forma%2520e%2520quero%2520saber%2520mais%2520sobre%2520suplementos&e=AUB8vG0ealTOuzTFD9wiSnsEXNI9_w3OicIUaLKxDCEc_SfCWXtIReQz1u0g0_ITcDKXUtfnDSFfklfUTUJyoKriwew1Lp6k8097ladDDrmrhSX0eN1Eitmalph72wFgA6iWRMCWdAw" target="_blank" class="nutri-btn whatsapp" style="flex:1; font-size:10px;">💬 WhatsApp</a>
+            </div>
           </div>
         `;
-      } else if (id === 'refer') {
-        const refCode = (userProfile.name || 'CLIENTE').split(' ')[0].toUpperCase() + '10';
-        html += `
-          <p class="small-text">Seu código exclusivo de indicação vinculado ao CPF é: <b>${refCode}</b></p>
-          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="copy();">Copiar e Compartilhar</button>
-        `;
-      } else if (id === 'friend_buy' || id === 'insta' || id === 'review' || id === 'birthday') {
-        html += `
-          <div class="form-group" style="margin-top:10px;">
-            <label>Comprovante / Informação</label>
-            <input type="file" class="form-control" accept="image/*,.pdf">
-          </div>
-          <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="simulateSubmit('${item.title}')">Enviar para Análise</button>
-        `;
-      } else {
-        html += `<button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Fechar</button>`;
       }
 
       modal(html);
+    }
+
+    // Gravação direta da comprovação no banco de dados para o painel admin.html
+    async function submitProofToAdmin(event, title, points) {
+      event.preventDefault();
+      const btn = document.getElementById('btn-submit-proof');
+      const fileInput = document.getElementById('proof-input');
+
+      if (!fileInput.files.length) {
+        alert("Por favor, selecione uma imagem para anexar.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Enviando...";
+
+      try {
+        const file = fileInput.files[0];
+        const imageBase64 = await convertFileToBase64(file);
+
+        await db.collection("solicitacoes").add({
+          clienteCpf: currentUserCPF,
+          clienteNome: userProfile.name || 'Cliente',
+          acao: title,
+          pontos: points,
+          comprovanteUrl: imageBase64,
+          status: "pendente",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        modal(`
+          <h2>📩 Solicitação enviada!</h2>
+          <p class="small-text">Sua comprovação referente a <b>${title}</b> foi enviada para a nossa equipe e aparecerá na aba de aprovações!</p>
+          <button class="nutri-btn primary" style="width:100%; margin-top:15px;" onclick="closeM()">Ok, entendi</button>
+        `);
+      } catch (err) {
+        console.error("Erro ao enviar solicitação: ", err);
+        alert("Ocorreu um erro ao enviar o comprovante. Tente novamente.");
+        btn.disabled = false;
+        btn.textContent = "Enviar para Análise";
+      }
     }
 
     function openEditProfile() {
@@ -891,14 +953,6 @@
         <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="saveProfile()">Salvar Alterações</button>
       `;
       modal(html);
-    }
-
-    function simulateSubmit(title) {
-      modal(`
-        <h2>📩 Solicitação enviada!</h2>
-        <p class="small-text">Sua comprovação referente a <b>${title}</b> foi enviada com sucesso!</p>
-        <button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok</button>
-      `);
     }
 
     function modal(t) {
