@@ -1,0 +1,21 @@
+{
+  "name": "Nutriforma Fidelidade",
+  "short_name": "Nutriforma",
+  "description": "Programa de Fidelidade e Recompensas Nutriforma",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/cS6GKZKt/Whats-App-Image-2026-09-01-at-12-54-39.jpg",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.ibb.co/cS6GKZKt/Whats-App-Image-2026-09-01-at-12-54-39.jpg",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
