@@ -1,19 +1,20 @@
 {
-  "name": "Nutriforma Fidelidade",
+  "id": "/clube-cliente",
+  "name": "Clube Nutriforma",
   "short_name": "Nutriforma",
-  "description": "Programa de Fidelidade e Recompensas Nutriforma",
   "start_url": "./index.html",
+  "scope": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
   "icons": [
     {
-      "src": "https://i.ibb.co/cS6GKZKt/Whats-App-Image-2026-09-01-at-12-54-39.jpg",
+      "src": "./icon-cliente.png?v=2",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://i.ibb.co/cS6GKZKt/Whats-App-Image-2026-09-01-at-12-54-39.jpg",
+      "src": "./icon-cliente.png?v=2",
       "sizes": "512x512",
       "type": "image/png"
     }
