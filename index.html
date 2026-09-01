@@ -832,15 +832,23 @@
       ).join('');
     }
 
-    // COMPACTAÇÃO E REDIMENSIONAMENTO DE IMAGEM PARA EVITAR EXCEDER LIMITE DO FIRESTORE (1MB)
+    // COMPACTAÇÃO DE IMAGEM OTIMIZADA COM SUPORTE A PNG E TIMEOUT DE SEGURANÇA
     function compressImage(file, maxWidth = 1024, quality = 0.7) {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
+        // Timeout de fallback para não travar a UI caso a imagem seja incompatível
+        const timeout = setTimeout(() => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(file);
+        }, 4000);
+
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (event) => {
           const img = new Image();
           img.src = event.target.result;
           img.onload = () => {
+            clearTimeout(timeout);
             let width = img.width;
             let height = img.height;
 
@@ -853,15 +861,24 @@
             canvas.width = width;
             canvas.height = height;
 
-            const ctx = canvas.getContext('canvas');
+            const ctx = canvas.getContext('2d');
+            // Desenha fundo branco para evitar artefatos em PNGs transparentes
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
             ctx.drawImage(img, 0, 0, width, height);
 
             const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
             resolve(compressedBase64);
           };
-          img.onerror = (err) => reject(err);
+          img.onerror = () => {
+            clearTimeout(timeout);
+            resolve(event.target.result);
+          };
         };
-        reader.onerror = (err) => reject(err);
+        reader.onerror = () => {
+          clearTimeout(timeout);
+          resolve(null);
+        };
       });
     }
 
@@ -924,8 +941,12 @@
       try {
         const file = fileInput.files[0];
         
-        // Compacta a imagem automaticamente antes do envio
+        // Compacta a imagem garantindo que o PNG não trave a conversão
         const imageBase64 = await compressImage(file, 1024, 0.7);
+
+        if (!imageBase64) {
+          throw new Error("Não foi possível carregar a imagem selecionada.");
+        }
 
         await db.collection("solicitacoes").add({
           clienteCpf: currentUserCPF,
