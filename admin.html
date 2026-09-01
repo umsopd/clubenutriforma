@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Nutri Admin">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Painel Administrativo | Clube Nutriforma</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,33 +36,33 @@
             top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-primary);
             display: flex; align-items: center; justify-content: center;
-            z-index: 9999;
+            z-index: 9999; padding: 1rem;
         }
 
         .login-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            padding: 2.5rem; border-radius: 16px;
+            padding: 2rem; border-radius: 16px;
             width: 100%; max-width: 400px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
 
-        .login-card h2 { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .login-card h2 { font-family: 'Montserrat', sans-serif; font-size: 1.4rem; margin-bottom: 0.5rem; }
         .login-card p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
 
         .form-group { text-align: left; margin-bottom: 1.2rem; }
         .form-group label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.4rem; }
         .form-group input {
             width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color);
-            border-radius: 8px; padding: 0.75rem 1rem; color: var(--text-main); outline: none;
+            border-radius: 8px; padding: 0.75rem 1rem; color: var(--text-main); outline: none; font-size: 1rem;
         }
         .form-group input:focus { border-color: var(--accent-gold); }
 
         .btn-primary {
             background: var(--accent-gold); color: #000; border: none;
-            padding: 0.7rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 0.5rem; transition: background 0.2s;
+            padding: 0.75rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background 0.2s; font-size: 0.95rem;
         }
         .btn-primary:hover { background: var(--accent-gold-hover); }
 
@@ -72,67 +72,96 @@
         header {
             background-color: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
-            padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;
         }
 
-        .brand-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .brand-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
         .brand-logo span { color: var(--accent-gold); }
 
         .btn-logout {
             background: rgba(239, 68, 68, 0.1); color: var(--danger-color);
-            border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.4rem 0.8rem;
+            border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.5rem 0.8rem;
             border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
-            display: flex; align-items: center; gap: 0.4rem;
+            display: flex; align-items: center; gap: 0.4rem; shrink: 0;
         }
 
-        main { flex: 1; max-width: 1200px; width: 100%; margin: 2rem auto; padding: 0 1.5rem; }
+        main { flex: 1; max-width: 1200px; width: 100%; margin: 1.5rem auto; padding: 0 1rem; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
-        .stat-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem; }
-        .stat-icon { background: rgba(245, 158, 11, 0.1); color: var(--accent-gold); padding: 1rem; border-radius: 10px; }
-        .stat-info h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; }
-        .stat-info p { font-size: 1.6rem; font-weight: 700; margin-top: 0.25rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; }
+        .stat-icon { background: rgba(245, 158, 11, 0.1); color: var(--accent-gold); padding: 0.8rem; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .stat-info h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .stat-info p { font-size: 1.4rem; font-weight: 700; margin-top: 0.2rem; }
 
-        .content-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
-        .card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .content-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+        .card-header { padding: 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .card-header h2 { font-size: 1.1rem; font-weight: 700; }
 
-        .header-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-        .search-box { position: relative; width: 260px; }
-        .search-box input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem 0.6rem 2.5rem; color: var(--text-main); outline: none; }
+        .header-actions { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; width: 100%; }
+        .search-box { position: relative; flex: 1; min-width: 200px; }
+        .search-box input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.65rem 0.8rem 0.65rem 2.4rem; color: var(--text-main); outline: none; font-size: 0.9rem; }
         .search-box i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; }
 
-        .table-responsive { overflow-x: auto; }
+        .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { background-color: rgba(15, 23, 42, 0.5); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
-        td { padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+        th { background-color: rgba(15, 23, 42, 0.5); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); }
+        td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
         tr:hover { background-color: rgba(255, 255, 255, 0.02); }
 
-        .badge-points { background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-points { background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.85rem; }
         
-        .btn-action { background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--border-color); padding: 0.35rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-right: 0.3rem; }
+        .actions-cell { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .btn-action { background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--border-color); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
         .btn-action:hover { background: rgba(255, 255, 255, 0.1); }
         .btn-action.delete { color: var(--danger-color); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); }
         .btn-action.delete:hover { background: rgba(239, 68, 68, 0.2); }
         
-        .btn-approve { background: var(--success-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
-        .btn-reject { background: var(--danger-color); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem; }
+        .btn-approve { background: var(--success-color); color: #fff; border: none; padding: 0.45rem 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .btn-reject { background: var(--danger-color); color: #fff; border: none; padding: 0.45rem 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem; }
         .empty-message { text-align: center; padding: 2rem; color: var(--text-muted); }
 
         /* MODAL CADASTRO / EDIÇÃO */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center;
-            z-index: 10000;
+            background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center;
+            z-index: 10000; padding: 1rem;
         }
         .modal-card {
             background: var(--bg-card); border: 1px solid var(--border-color);
-            padding: 2rem; border-radius: 12px; width: 100%; max-width: 480px;
+            padding: 1.5rem; border-radius: 12px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
         }
-        .modal-card h3 { font-family: 'Montserrat', sans-serif; margin-bottom: 1.5rem; }
+        .modal-card h3 { font-family: 'Montserrat', sans-serif; margin-bottom: 1.25rem; font-size: 1.2rem; }
         .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.8rem; }
-        .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; }
-        .btn-danger-modal { background: rgba(239, 68, 68, 0.15); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; }
-        .btn-danger-modal:hover { background: rgba(239, 68, 68, 0.3); }
+        .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); padding: 0.65rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        .btn-danger-modal { background: rgba(239, 68, 68, 0.15); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.65rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+
+        /* AJUSTES RESPONSIVOS PARA TELAS DE CELULAR (< 640px) */
+        @media (max-width: 640px) {
+            header { padding: 0.85rem 1rem; }
+            .brand-logo { font-size: 1rem; }
+            .brand-logo small { display: none; }
+
+            .header-actions { flex-direction: column; align-items: stretch; }
+            .search-box { width: 100%; }
+            #btn-add-client { width: 100%; }
+
+            /* Modo Card para Tabelas no Celular */
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; }
+            tr { border-bottom: 1px solid var(--border-color); padding: 1rem 0; }
+            tr:first-child { padding-top: 0; }
+            td { border: none; position: relative; padding: 0.4rem 1rem; text-align: right; font-size: 0.85rem; }
+            td:before { position: absolute; left: 1rem; width: 45%; padding-right: 10px; white-space: nowrap; text-align: left; font-weight: 600; color: var(--text-muted); content: attr(data-label); }
+            
+            .actions-cell { justify-content: flex-end; margin-top: 0.5rem; }
+            .empty-message { text-align: center !important; }
+            .empty-message:before { display: none; }
+
+            .modal-footer { flex-direction: column-reverse; align-items: stretch; }
+            .modal-footer > div { width: 100%; display: flex; justify-content: space-between; gap: 0.5rem; }
+            .btn-danger-modal { width: 100%; justify-content: center; }
+            .btn-secondary, .modal-footer .btn-primary { flex: 1; }
+        }
     </style>
 </head>
 <body>
@@ -156,7 +185,7 @@
                     <label>Senha</label>
                     <input type="password" id="login-pass" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Entrar no Painel</button>
+                <button type="submit" class="btn-primary" style="width: 100%;">Entrar no Painel</button>
             </form>
         </div>
     </div>
@@ -278,9 +307,9 @@
                             <i data-lucide="trash-2"></i> Excluir
                         </button>
                     </div>
-                    <div style="display: flex; gap: 0.8rem;">
+                    <div>
                         <button type="button" class="btn-secondary" id="btn-close-modal">Cancelar</button>
-                        <button type="submit" class="btn-primary">Salvar Cliente</button>
+                        <button type="submit" class="btn-primary">Salvar</button>
                     </div>
                 </div>
             </form>
@@ -391,13 +420,15 @@
                         hasPending = true;
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td><strong>${data.clienteNome || 'Cliente'}</strong></td>
-                            <td>${data.acao || 'Ação'}</td>
-                            <td><span class="badge-points">+${data.pontos || 0} pts</span></td>
-                            <td>${data.comprovanteUrl ? `<a href="${data.comprovanteUrl}" target="_blank" style="color: #3B82F6;">Ver Anexo</a>` : 'Sem foto'}</td>
-                            <td>
-                                <button class="btn-approve" onclick="aprovarSolicitacao('${solDoc.id}', '${data.clienteCpf}', ${data.pontos})"><i data-lucide="check"></i> Aprovar</button>
-                                <button class="btn-reject" onclick="recusarSolicitacao('${solDoc.id}')"><i data-lucide="x"></i> Recusar</button>
+                            <td data-label="Cliente"><strong>${data.clienteNome || 'Cliente'}</strong></td>
+                            <td data-label="Ação">${data.acao || 'Ação'}</td>
+                            <td data-label="Pontos"><span class="badge-points">+${data.pontos || 0} pts</span></td>
+                            <td data-label="Comprovante">${data.comprovanteUrl ? `<a href="${data.comprovanteUrl}" target="_blank" style="color: #3B82F6;">Ver Anexo</a>` : 'Sem foto'}</td>
+                            <td data-label="Ações">
+                                <div class="actions-cell">
+                                    <button class="btn-approve" onclick="aprovarSolicitacao('${solDoc.id}', '${data.clienteCpf}', ${data.pontos})"><i data-lucide="check"></i> Aprovar</button>
+                                    <button class="btn-reject" onclick="recusarSolicitacao('${solDoc.id}')"><i data-lucide="x"></i> Recusar</button>
+                                </div>
                             </td>
                         `;
                         pendingTable.appendChild(row);
@@ -454,7 +485,6 @@
                 document.getElementById('client-phone').value = client.phone;
                 document.getElementById('group-initial-pts').style.display = 'none';
                 
-                // Exibe e configura o botão de exclusão
                 btnDeleteModal.style.display = 'inline-flex';
                 btnDeleteModal.onclick = () => window.adminDeleteCustomer(client.id, client.cpf, client.nome);
             } else {
@@ -479,10 +509,8 @@
             if (!confirmDelete) return;
 
             try {
-                // 1. Remove o documento do cliente
                 await deleteDoc(doc(db, "clientes", docId));
 
-                // 2. Limpa solicitações pendentes vinculadas a este CPF
                 const cleanCpf = cpf.replace(/\D/g, '');
                 const q = query(collection(db, "solicitacoes"), where("clienteCpf", "in", [cpf, cleanCpf]));
                 const snapshot = await getDocs(q);
@@ -543,20 +571,22 @@
             data.forEach(client => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><strong>${client.nome}</strong></td>
-                    <td>${client.cpf}</td>
-                    <td>${client.phone}</td>
-                    <td><span class="badge-points">${client.pontos} pts</span></td>
-                    <td>
-                        <button class="btn-action" onclick="editarCliente('${client.id}')">
-                            <i data-lucide="edit-3"></i> Editar
-                        </button>
-                        <button class="btn-action" onclick="alterarPontosManualmente('${client.id}', '${client.nome}', ${client.pontos})">
-                            <i data-lucide="plus-circle"></i> Pontos
-                        </button>
-                        <button class="btn-action delete" onclick="adminDeleteCustomer('${client.id}', '${client.cpf}', '${client.nome}')">
-                            <i data-lucide="trash-2"></i> Excluir
-                        </button>
+                    <td data-label="Nome"><strong>${client.nome}</strong></td>
+                    <td data-label="CPF">${client.cpf}</td>
+                    <td data-label="Telefone">${client.phone}</td>
+                    <td data-label="Pontos"><span class="badge-points">${client.pontos} pts</span></td>
+                    <td data-label="Ações">
+                        <div class="actions-cell">
+                            <button class="btn-action" onclick="editarCliente('${client.id}')">
+                                <i data-lucide="edit-3"></i> Editar
+                            </button>
+                            <button class="btn-action" onclick="alterarPontosManualmente('${client.id}', '${client.nome}', ${client.pontos})">
+                                <i data-lucide="plus-circle"></i> Pontos
+                            </button>
+                            <button class="btn-action delete" onclick="adminDeleteCustomer('${client.id}', '${client.cpf}', '${client.nome}')">
+                                <i data-lucide="trash-2"></i> Excluir
+                            </button>
+                        </div>
                     </td>
                 `;
                 tableBody.appendChild(row);
