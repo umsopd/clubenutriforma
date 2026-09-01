@@ -1079,9 +1079,9 @@
         initApp();
       }
     });
-    if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('./sw.js')
       .then(() => console.log('PWA Service Worker Registrado!'))
       .catch((err) => console.log('Erro PWA:', err));
   });
