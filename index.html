@@ -1113,6 +1113,105 @@ if ('serviceWorker' in navigator) {
       .catch((err) => console.log('Erro PWA:', err));
   });
 }
+    <!-- MODAL PESQUISA DE SATISFAÇÃO -->
+<div class="modal-overlay" id="survey-modal" style="display:none;">
+    <div class="modal-card">
+        <h3>Pesquisa de Satisfação (+10 pts)</h3>
+        <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 1rem;">
+            Responda rapidinho e ganhe 10 pontos no seu saldo!
+        </p>
+        
+        <form id="survey-form">
+            <div class="form-group">
+                <label>Como avalia o atendimento?</label>
+                <select id="survey-rating-atendimento" required class="input-select">
+                    <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
+                    <option value="4">⭐⭐⭐⭐ - Muito bom</option>
+                    <option value="3">⭐⭐⭐ - Regular</option>
+                    <option value="2">⭐⭐ - Ruim</option>
+                    <option value="1">⭐ - Péssimo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Variedade e estoque de produtos:</label>
+                <select id="survey-rating-produtos" required class="input-select">
+                    <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
+                    <option value="4">⭐⭐⭐⭐ - Boa</option>
+                    <option value="3">⭐⭐⭐ - Regular</option>
+                    <option value="2">⭐⭐ - Pouca variedade</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>O que acha do Clube de Fidelidade?</label>
+                <select id="survey-clube" required class="input-select">
+                    <option value="Excelente">Fácil de usar e vantajoso</option>
+                    <option value="Bom">Bom, mas quero aprender mais</option>
+                    <option value="Melhorar">Pode melhorar</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Sugestão de produto ou melhoria:</label>
+                <textarea id="survey-feedback" rows="3" placeholder="Escreva aqui..." class="input-textarea"></textarea>
+            </div>
+
+            <div style="display:flex; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('survey-modal').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn-primary" style="flex:1;">Enviar (+10 pts)</button>
+            </div>
+        </form>
+    </div>
+</div>
+    // Envio da Pesquisa de Satisfação
+const surveyForm = document.getElementById('survey-form');
+
+surveyForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Pega o cliente logado na sessão
+    const userCpf = localStorage.getItem('userCpf'); 
+    const userName = localStorage.getItem('userName') || 'Cliente';
+
+    if (!userCpf) {
+        alert("Faça login para responder a pesquisa.");
+        return;
+    }
+
+    const dadosPesquisa = {
+        clienteCpf: userCpf,
+        clienteNome: userName,
+        atendimento: document.getElementById('survey-rating-atendimento').value,
+        produtos: document.getElementById('survey-rating-produtos').value,
+        experienciaClube: document.getElementById('survey-clube').value,
+        feedback: document.getElementById('survey-feedback').value,
+        data: new Date(),
+        pontosLiberados: false
+    };
+
+    try {
+        // 1. Salva a pesquisa no Firebase
+        await addDoc(collection(db, "pesquisas"), dadosPesquisa);
+
+        // 2. Cria solicitação pendente de +10 pontos no Admin
+        await addDoc(collection(db, "solicitacoes"), {
+            clienteCpf: userCpf,
+            clienteNome: userName,
+            acao: "Pesquisa de Satisfação",
+            pontos: 10,
+            status: "pendente",
+            createdAt: serverTimestamp()
+        });
+
+        alert("🎉 Obrigado! Sua pesquisa foi enviada e 10 pontos foram solicitados!");
+        document.getElementById('survey-modal').style.display = 'none';
+        surveyForm.reset();
+    } catch (err) {
+        console.error("Erro ao enviar pesquisa:", err);
+        alert("Erro ao enviar pesquisa. Tente novamente.");
+    }
+});
   </script>
 </body>
 </html>
