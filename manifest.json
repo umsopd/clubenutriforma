@@ -9,12 +9,12 @@
   "theme_color": "#0F172A",
   "icons": [
     {
-      "src": "./icon-cliente.png?v=2",
+      "src": "https://i.ibb.co/cS6GKZKt/Whats-App-Image-2026-09-01-at-12-54-39.jpg",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "./icon-cliente.png?v=2",
+      "src": "https://i.ibb.co/cS6GKZKt/Whats-App-Image-2026-09-01-at-12-54-39.jpg",
       "sizes": "512x512",
       "type": "image/png"
     }
