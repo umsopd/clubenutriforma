@@ -651,6 +651,25 @@
       [400, 'Kit exclusivo']
     ];
 
+    // --- FUNÇÕES DE NAVEGAÇÃO E UTILS ---
+    function modal(t) {
+      document.querySelector('#modal-body').innerHTML = t === 'mission' ? '<h2>🔥 Missão da semana</h2><p class="small-text">Complete 3 ações para ganhar <b>+30 pontos bônus</b>.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Entendi</button>' : t;
+      document.querySelector('#modal').classList.add('show');
+    }
+
+    function closeM() {
+      document.querySelector('#modal').classList.remove('show');
+    }
+
+    window.abrirModalPesquisa = function() {
+      closeM();
+      document.getElementById('modal-pesquisa').classList.add('show');
+    };
+
+    window.fecharModalPesquisa = function() {
+      document.getElementById('modal-pesquisa').classList.remove('show');
+    };
+
     function cleanCPF(cpf) {
       return cpf ? cpf.replace(/\D/g, "") : "";
     }
@@ -930,63 +949,54 @@
       });
     }
 
-window.abrirModalPesquisa = () => {
-  closeM(); // Garante que fecha o modal genérico (#modal) antes de abrir a pesquisa
-  document.getElementById('modal-pesquisa').classList.add('show');
-};
-
-window.fecharModalPesquisa = () => {
-  document.getElementById('modal-pesquisa').classList.remove('show');
-};
-
     function openActionModal(id) {
-  // Se for pesquisa, abre APENAS o modal de pesquisa e encerra a execução da função
-  if (id === 'survey') {
-    abrirModalPesquisa();
-    return; // <-- O "return" impede que o modal de envio de arquivo seja construído e aberto
-  }
+      if (id === 'survey') {
+        window.abrirModalPesquisa();
+        return;
+      }
 
-  const item = A.find(a => a.id === id);
-  
-  if (id === 'refer') {
-    const refCode = (userProfile.name || 'CLIENTE').split(' ')[0].toUpperCase() + '10';
-    let html = `
-      <h2>${item.icon} ${item.title}</h2>
-      <p class="small-text">${item.desc}</p>
-      <p class="small-text" style="margin-top:10px;">Seu código exclusivo de indicação é: <b>${refCode}</b></p>
-      <button class="nutri-btn primary" style="width:100%; margin-top:15px;" onclick="copy();">Copiar e Compartilhar</button>
-    `;
-    modal(html);
-    return;
-  }
+      const item = A.find(a => a.id === id);
+      if (!item) return;
+      
+      if (id === 'refer') {
+        const refCode = (userProfile.name || 'CLIENTE').split(' ')[0].toUpperCase() + '10';
+        let html = `
+          <h2>${item.icon} ${item.title}</h2>
+          <p class="small-text">${item.desc}</p>
+          <p class="small-text" style="margin-top:10px;">Seu código exclusivo de indicação é: <b>${refCode}</b></p>
+          <button class="nutri-btn primary" style="width:100%; margin-top:15px;" onclick="copy();">Copiar e Compartilhar</button>
+        `;
+        modal(html);
+        return;
+      }
 
-  let html = `
-    <h2>${item.icon} ${item.title}</h2>
-    <p class="small-text">${item.desc}</p>
-    
-    <form id="submission-form" style="margin-top:12px;" onsubmit="submitProofToAdmin(event, '${item.title}', ${item.pts})">
-      <div class="form-group">
-        <label>Foto / Print / Comprovante (Obrigatório)</label>
-        <input type="file" id="proof-input" class="form-control" accept="image/*" required>
-      </div>
-      <button type="submit" id="btn-submit-proof" class="nutri-btn primary" style="width:100%; margin-top:10px;">Enviar para Análise</button>
-    </form>
-  `;
+      let html = `
+        <h2>${item.icon} ${item.title}</h2>
+        <p class="small-text">${item.desc}</p>
+        
+        <form id="submission-form" style="margin-top:12px;" onsubmit="submitProofToAdmin(event, '${item.title}', ${item.pts})">
+          <div class="form-group">
+            <label>Foto / Print / Comprovante (Obrigatório)</label>
+            <input type="file" id="proof-input" class="form-control" accept="image/*" required>
+          </div>
+          <button type="submit" id="btn-submit-proof" class="nutri-btn primary" style="width:100%; margin-top:10px;">Enviar para Análise</button>
+        </form>
+      `;
 
-  if (id === 'buy') {
-    html += `
-      <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px; text-align:center;">
-        <p class="small-text" style="margin-bottom:8px;">Prefere comprar agora antes de enviar?</p>
-        <div style="display:flex; gap:8px;">
-          <a href="https://nutriforma11.lojavirtualnuvem.com.br/" target="_blank" class="nutri-btn outline" style="flex:1; font-size:10px;">🌐 Site</a>
-          <a href="https://wa.me/554188215348" target="_blank" class="nutri-btn whatsapp" style="flex:1; font-size:10px;">💬 WhatsApp</a>
-        </div>
-      </div>
-    `;
-  }
+      if (id === 'buy') {
+        html += `
+          <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px; text-align:center;">
+            <p class="small-text" style="margin-bottom:8px;">Prefere comprar agora antes de enviar?</p>
+            <div style="display:flex; gap:8px;">
+              <a href="https://nutriforma11.lojavirtualnuvem.com.br/" target="_blank" class="nutri-btn outline" style="flex:1; font-size:10px;">🌐 Site</a>
+              <a href="https://wa.me/554188215348" target="_blank" class="nutri-btn whatsapp" style="flex:1; font-size:10px;">💬 WhatsApp</a>
+            </div>
+          </div>
+        `;
+      }
 
-  modal(html);
-}
+      modal(html);
+    }
 
     async function submitProofToAdmin(event, title, points) {
       event.preventDefault();
@@ -1098,15 +1108,6 @@ window.fecharModalPesquisa = () => {
       }
     }
 
-    function modal(t) {
-      document.querySelector('#modal-body').innerHTML = t === 'mission' ? '<h2>🔥 Missão da semana</h2><p class="small-text">Complete 3 ações para ganhar <b>+30 pontos bônus</b>.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Entendi</button>' : t;
-      document.querySelector('#modal').classList.add('show');
-    }
-
-    function closeM() {
-      document.querySelector('#modal').classList.remove('show');
-    }
-
     function go(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.querySelector('#' + id).classList.add('active');
@@ -1122,46 +1123,54 @@ window.fecharModalPesquisa = () => {
 
     window.addEventListener('DOMContentLoaded', () => {
       const surveyForm = document.getElementById('survey-form');
-if (surveyForm) {
-  surveyForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    if (!currentUserCPF) {
-      alert("Faça login para responder a pesquisa.");
-      return;
-    }
+      if (surveyForm) {
+        surveyForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          if (!currentUserCPF) {
+            alert("Faça login para responder a pesquisa.");
+            return;
+          }
 
-    const dadosPesquisa = {
-      clienteCpf: currentUserCPF,
-      clienteNome: userProfile.name || 'Cliente',
-      atendimento: document.getElementById('survey-rating-atendimento').value,
-      produtos: document.getElementById('survey-rating-produtos').value,
-      experienciaClube: document.getElementById('survey-clube').value,
-      feedback: document.getElementById('survey-feedback').value,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
+          const btnSubmit = document.getElementById('btn-iniciar-pesquisa');
+          btnSubmit.disabled = true;
+          btnSubmit.textContent = "Enviando...";
 
-    try {
-      await db.collection("pesquisas").add(dadosPesquisa);
+          const dadosPesquisa = {
+            clienteCpf: currentUserCPF,
+            clienteNome: userProfile.name || 'Cliente',
+            atendimento: document.getElementById('survey-rating-atendimento').value,
+            produtos: document.getElementById('survey-rating-produtos').value,
+            experienciaClube: document.getElementById('survey-clube').value,
+            feedback: document.getElementById('survey-feedback').value,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
 
-      await db.collection("solicitacoes").add({
-        clienteCpf: currentUserCPF,
-        clienteNome: userProfile.name || 'Cliente',
-        acao: "Pesquisa de Satisfação",
-        pontos: 10,
-        status: "pendente",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+          try {
+            await db.collection("pesquisas").add(dadosPesquisa);
 
-      fecharModalPesquisa(); // Fecha o modal da pesquisa
-      surveyForm.reset();
-      alert("🎉 Obrigado! Sua pesquisa foi enviada e os 10 pontos foram solicitados!");
-    } catch (err) {
-      console.error("Erro ao enviar pesquisa:", err);
-      alert("Erro ao enviar pesquisa. Tente novamente.");
-    }
-  });
-}
+            await db.collection("solicitacoes").add({
+              clienteCpf: currentUserCPF,
+              clienteNome: userProfile.name || 'Cliente',
+              acao: "Pesquisa de Satisfação",
+              pontos: 10,
+              status: "pendente",
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            window.fecharModalPesquisa();
+            surveyForm.reset();
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = "Enviar Pesquisa e Receber Pontos";
+            alert("🎉 Obrigado! Sua pesquisa foi enviada e os 10 pontos foram solicitados!");
+          } catch (err) {
+            console.error("Erro ao enviar pesquisa:", err);
+            alert("Erro ao enviar pesquisa. Tente novamente.");
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = "Enviar Pesquisa e Receber Pontos";
+          }
+        });
+      }
 
       const activeCPF = localStorage.getItem('nutri_active_cpf');
       if (activeCPF) {
