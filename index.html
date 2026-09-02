@@ -930,13 +930,14 @@
       });
     }
 
-    window.abrirModalPesquisa = () => {
-      document.getElementById('modal-pesquisa').classList.add('show');
-    };
+window.abrirModalPesquisa = () => {
+  closeM(); // Garante que fecha o modal genérico (#modal) antes de abrir a pesquisa
+  document.getElementById('modal-pesquisa').classList.add('show');
+};
 
-    window.fecharModalPesquisa = () => {
-      document.getElementById('modal-pesquisa').classList.remove('show');
-    };
+window.fecharModalPesquisa = () => {
+  document.getElementById('modal-pesquisa').classList.remove('show');
+};
 
     function openActionModal(id) {
   // Se for pesquisa, abre APENAS o modal de pesquisa e encerra a execução da função
@@ -1121,46 +1122,46 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       const surveyForm = document.getElementById('survey-form');
-      if (surveyForm) {
-        surveyForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          
-          if (!currentUserCPF) {
-              alert("Faça login para responder a pesquisa.");
-              return;
-          }
+if (surveyForm) {
+  surveyForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!currentUserCPF) {
+      alert("Faça login para responder a pesquisa.");
+      return;
+    }
 
-          const dadosPesquisa = {
-              clienteCpf: currentUserCPF,
-              clienteNome: userProfile.name || 'Cliente',
-              atendimento: document.getElementById('survey-rating-atendimento').value,
-              produtos: document.getElementById('survey-rating-produtos').value,
-              experienciaClube: document.getElementById('survey-clube').value,
-              feedback: document.getElementById('survey-feedback').value,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          };
+    const dadosPesquisa = {
+      clienteCpf: currentUserCPF,
+      clienteNome: userProfile.name || 'Cliente',
+      atendimento: document.getElementById('survey-rating-atendimento').value,
+      produtos: document.getElementById('survey-rating-produtos').value,
+      experienciaClube: document.getElementById('survey-clube').value,
+      feedback: document.getElementById('survey-feedback').value,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
 
-          try {
-              await db.collection("pesquisas").add(dadosPesquisa);
+    try {
+      await db.collection("pesquisas").add(dadosPesquisa);
 
-              await db.collection("solicitacoes").add({
-                  clienteCpf: currentUserCPF,
-                  clienteNome: userProfile.name || 'Cliente',
-                  acao: "Pesquisa de Satisfação",
-                  pontos: 10,
-                  status: "pendente",
-                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
-              });
+      await db.collection("solicitacoes").add({
+        clienteCpf: currentUserCPF,
+        clienteNome: userProfile.name || 'Cliente',
+        acao: "Pesquisa de Satisfação",
+        pontos: 10,
+        status: "pendente",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
-              alert("🎉 Obrigado! Sua pesquisa foi enviada e a solicitação dos 10 pontos foi realizada!");
-              fecharModalPesquisa();
-              surveyForm.reset();
-          } catch (err) {
-              console.error("Erro ao enviar pesquisa:", err);
-              alert("Erro ao enviar pesquisa. Tente novamente.");
-          }
-        });
-      }
+      fecharModalPesquisa(); // Fecha o modal da pesquisa
+      surveyForm.reset();
+      alert("🎉 Obrigado! Sua pesquisa foi enviada e os 10 pontos foram solicitados!");
+    } catch (err) {
+      console.error("Erro ao enviar pesquisa:", err);
+      alert("Erro ao enviar pesquisa. Tente novamente.");
+    }
+  });
+}
 
       const activeCPF = localStorage.getItem('nutri_active_cpf');
       if (activeCPF) {
