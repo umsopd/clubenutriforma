@@ -856,7 +856,11 @@
     }
 
     function card(a) {
-      return `<div class="nutri-card" onclick="openActionModal('${a.id}')">
+      const clickHandler = a.id === 'survey'
+        ? 'abrirModalPesquisa()'
+        : `openActionModal('${a.id}')`;
+
+      return `<div class="nutri-card" onclick="${clickHandler}">
                 <div class="action-icon">${a.icon}</div>
                 <h3>${a.title}</h3>
                 <div class="points-added">+${a.pts} pts</div>
@@ -1179,13 +1183,23 @@
       }
     });
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(() => console.log('PWA Service Worker Registrado!'))
-          .catch((err) => console.log('Erro PWA:', err));
-      });
-    }
+    // Remove versões antigas do app que possam estar presas no cache do PWA.
+    // O service worker anterior estava mantendo o modal antigo de comprovante.
+    window.addEventListener('load', async () => {
+      try {
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(registration => registration.unregister()));
+        }
+
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+        }
+      } catch (err) {
+        console.warn('Não foi possível limpar o cache antigo do PWA:', err);
+      }
+    });
   </script>
 </body>
 </html>
