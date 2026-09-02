@@ -179,11 +179,11 @@
             <form id="login-form">
                 <div class="form-group">
                     <label>Usuário</label>
-                    <input type="text" id="login-user" placeholder="admin" required>
+                    <input type="text" id="login-user" placeholder="Nutriforma" autocomplete="username" required>
                 </div>
                 <div class="form-group">
                     <label>Senha</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" required>
+                    <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required>
                 </div>
                 <button type="submit" class="btn-primary" style="width: 100%;">Entrar no Painel</button>
             </form>
@@ -238,6 +238,29 @@
                         </thead>
                         <tbody id="pending-table-body">
                             <tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SEÇÃO: Respostas da Pesquisa -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>Pesquisas de Satisfação Recebidas</h2>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Atendimento</th>
+                                <th>Produtos</th>
+                                <th>Avaliação Clube</th>
+                                <th>Sugestão / Feedback</th>
+                            </tr>
+                        </thead>
+                        <tbody id="surveys-table-body">
+                            <tr><td colspan="5" class="empty-message">Nenhuma pesquisa recebida ainda.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -343,12 +366,12 @@
         const ADMIN_USER = "Nutriforma";
         const ADMIN_PASS = "Nutri123";
 
-        if (sessionStorage.getItem('adminLogged') === 'true') mostrarPainel();
-
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            if (document.getElementById('login-user').value === ADMIN_USER && 
-                document.getElementById('login-pass').value === ADMIN_PASS) {
+            const typedUser = document.getElementById('login-user').value.trim();
+            const typedPass = document.getElementById('login-pass').value;
+
+            if (typedUser.toLowerCase() === ADMIN_USER.toLowerCase() && typedPass === ADMIN_PASS) {
                 sessionStorage.setItem('adminLogged', 'true');
                 mostrarPainel();
             } else { alert('Usuário ou senha incorretos!'); }
@@ -370,6 +393,7 @@
         let clientsData = [];
         const tableBody = document.getElementById('admin-table-body');
         const pendingTable = document.getElementById('pending-table-body');
+        const surveysTable = document.getElementById('surveys-table-body');
         const totalClientsEl = document.getElementById('total-clients');
         const totalPointsEl = document.getElementById('total-points');
         const searchInput = document.getElementById('search-input');
@@ -437,6 +461,29 @@
 
                 if (!hasPending) pendingTable.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhuma comprovação pendente.</td></tr>`;
                 lucide.createIcons();
+            });
+
+            // Escutar Pesquisas de Satisfação
+            onSnapshot(collection(db, "pesquisas"), (snapshot) => {
+                surveysTable.innerHTML = '';
+
+                if (snapshot.empty) {
+                    surveysTable.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhuma pesquisa recebida ainda.</td></tr>`;
+                    return;
+                }
+
+                snapshot.forEach((surveyDoc) => {
+                    const data = surveyDoc.data();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td data-label="Cliente"><strong>${data.clienteNome || 'Cliente'}</strong></td>
+                        <td data-label="Atendimento">${data.atendimento || '-'}</td>
+                        <td data-label="Produtos">${data.produtos || '-'}</td>
+                        <td data-label="Avaliação Clube">${data.experienciaClube || '-'}</td>
+                        <td data-label="Sugestão / Feedback">${data.feedback || 'Sem comentário'}</td>
+                    `;
+                    surveysTable.appendChild(row);
+                });
             });
         }
 
@@ -605,58 +652,25 @@
 
         lucide.createIcons();
 
-        // REGISTRO DO PWA SERVICE WORKER
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./admin-sw.js')
-                    .then(() => console.log('Admin PWA Registrado!'))
-                    .catch((err) => console.log('Erro Admin PWA:', err));
-            });
-        }
-        <!-- SEÇÃO: Respostas da Pesquisa -->
-<div class="content-card">
-    <div class="card-header">
-        <h2>Pesquisas de Satisfação Recebidas</h2>
-    </div>
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>Cliente</th>
-                    <th>Atendimento</th>
-                    <th>Produtos</th>
-                    <th>Avaliação Clube</th>
-                    <th>Sugestão / Feedback</th>
-                </tr>
-            </thead>
-            <tbody id="surveys-table-body">
-                <tr><td colspan="5" class="empty-message">Nenhuma pesquisa recebida ainda.</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-        <!-- SEÇÃO: Respostas da Pesquisa -->
-<div class="content-card">
-    <div class="card-header">
-        <h2>Pesquisas de Satisfação Recebidas</h2>
-    </div>
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>Cliente</th>
-                    <th>Atendimento</th>
-                    <th>Produtos</th>
-                    <th>Avaliação Clube</th>
-                    <th>Sugestão / Feedback</th>
-                </tr>
-            </thead>
-            <tbody id="surveys-table-body">
-                <tr><td colspan="5" class="empty-message">Nenhuma pesquisa recebida ainda.</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+        // Restaura a sessão somente depois que todos os elementos foram preparados.
+        if (sessionStorage.getItem('adminLogged') === 'true') mostrarPainel();
+
+        // Limpa versões antigas do painel que possam estar presas no cache do PWA.
+        window.addEventListener('load', async () => {
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map(registration => registration.unregister()));
+                }
+
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+                }
+            } catch (err) {
+                console.warn('Não foi possível limpar o cache antigo do painel:', err);
+            }
+        });
     </script>
 </body>
 </html>
