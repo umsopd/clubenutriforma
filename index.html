@@ -468,6 +468,7 @@
         </div>
       </header>
       <main class="main">
+        <div class="nutri-notice" style="margin-bottom:14px;"><b>Regras dos pontos:</b> a cada R$ 2 em compras você ganha 1 ponto inteiro. Cada lançamento vale por 6 meses e, no resgate, usamos primeiro os pontos mais próximos do vencimento.</div>
         <div class="nutri-grid" id="all"></div>
         <div class="nutri-notice">Algumas ações exigem validação pela equipe Nutriforma via WhatsApp ou sistema.</div>
       </main>
@@ -634,7 +635,7 @@
     let unsubscribeUserListener = null;
 
     const A = [
-      { id: 'buy', icon: '🛒', title: 'Fazer uma compra', pts: 10, desc: 'Ganhe pontos a cada pedido. Anexe o comprovante ou nota do seu pedido.' },
+      { id: 'buy', icon: '🛒', title: 'Fazer uma compra', pts: null, pointsLabel: '1 pt / R$ 2', desc: 'Ganhe 1 ponto a cada R$ 2 gastos. Informe o valor e anexe o comprovante ou nota do pedido.' },
       { id: 'refer', icon: '👥', title: 'Indicar um amigo', pts: 30, desc: 'Envie seu cupom exclusivo para amigos.' },
       { id: 'friend_buy', icon: '🎉', title: 'Amigo faz a 1ª compra', pts: 30, desc: 'Envie o comprovante da compra do seu amigo que utilizou seu cupom.' },
       { id: 'review', icon: '⭐', title: 'Avaliar uma compra', pts: 10, desc: 'Envie print da sua avaliação sobre nossos produtos.' },
@@ -661,7 +662,17 @@
       document.querySelector('#modal').classList.remove('show');
     }
 
+    function surveyReleaseDate() {
+      const value = userProfile.nextSurveyAt;
+      return value && typeof value.toDate === 'function' ? value.toDate() : null;
+    }
+
     window.abrirModalPesquisa = function() {
+      const releaseDate = surveyReleaseDate();
+      if (releaseDate && releaseDate > new Date()) {
+        modal(`<h2>⏳ Pesquisa já respondida</h2><p class="small-text">Você poderá responder novamente em <b>${releaseDate.toLocaleDateString('pt-BR')}</b>.</p><button class="nutri-btn primary" style="width:100%; margin-top:12px;" onclick="closeM()">Entendi</button>`);
+        return;
+      }
       closeM();
       document.getElementById('modal-pesquisa').classList.add('show');
     };
@@ -752,6 +763,7 @@
           phone: phone || '',
           password: pass,
           pts: 50,
+          legacyPts: 0,
           email: '',
           dob: '',
           address: '',
@@ -761,7 +773,15 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        await docRef.set(newUser);
+        const welcomeMovementRef = docRef.collection('movimentacoes').doc();
+        const registrationBatch = db.batch();
+        registrationBatch.set(docRef, newUser);
+        registrationBatch.set(welcomeMovementRef, {
+          tipo: 'credito', origem: 'Bônus de cadastro', pontos: 50, pontosDisponiveis: 50,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          expiresAt: firebase.firestore.Timestamp.fromDate(addMonths(new Date(), 6)), status: 'ativo'
+        });
+        await registrationBatch.commit();
         currentUserCPF = rawCPF;
         localStorage.setItem('nutri_active_cpf', rawCPF);
 
@@ -817,15 +837,79 @@
       }
     }
 
+    function addMonths(date, months) {
+      const result = new Date(date);
+      const day = result.getDate();
+      result.setDate(1);
+      result.setMonth(result.getMonth() + months);
+      result.setDate(Math.min(day, new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate()));
+      return result;
+    }
+
+    async function expirePoints() {
+      if (!currentUserCPF) return;
+      const clientRef = db.collection('clientes').doc(currentUserCPF);
+      const snapshot = await clientRef.collection('movimentacoes').get();
+      const refs = snapshot.docs.filter(m => {
+        const data = m.data();
+        return data.tipo === 'credito' && Number(data.pontosDisponiveis || 0) > 0 &&
+          data.expiresAt && data.expiresAt.toDate() <= new Date();
+      }).map(m => m.ref);
+      if (!refs.length) return;
+
+      await db.runTransaction(async transaction => {
+        const clientSnap = await transaction.get(clientRef);
+        const creditSnaps = [];
+        for (const ref of refs) creditSnaps.push(await transaction.get(ref));
+        let expired = 0;
+        creditSnaps.forEach(snap => {
+          if (!snap.exists) return;
+          const data = snap.data();
+          if (Number(data.pontosDisponiveis || 0) > 0 && data.expiresAt.toDate() <= new Date()) {
+            expired += Number(data.pontosDisponiveis);
+            transaction.update(snap.ref, { pontosDisponiveis: 0, status: 'expirado', expiredAt: firebase.firestore.FieldValue.serverTimestamp() });
+          }
+        });
+        if (expired > 0) transaction.update(clientRef, { pts: Math.max(0, Number(clientSnap.data().pts || 0) - expired) });
+      });
+    }
+
     async function redeemN(n, name) {
-      if (pts < n) {
+      await expirePoints();
+      const clientRef = db.collection('clientes').doc(currentUserCPF);
+      const currentClient = await clientRef.get();
+      if (Number(currentClient.data()?.pts || 0) < n) {
         modal('<h2>🔒 Saldo Insuficiente</h2><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Continuar</button>');
         return;
       }
 
       try {
-        await db.collection("clientes").doc(currentUserCPF).update({
-          pts: firebase.firestore.FieldValue.increment(-n)
+        const snapshot = await clientRef.collection('movimentacoes').get();
+        const refs = snapshot.docs.filter(m => m.data().tipo === 'credito' && Number(m.data().pontosDisponiveis || 0) > 0 && m.data().expiresAt)
+          .sort((a, b) => a.data().expiresAt.toMillis() - b.data().expiresAt.toMillis()).map(m => m.ref);
+
+        await db.runTransaction(async transaction => {
+          const clientSnap = await transaction.get(clientRef);
+          const creditSnaps = [];
+          for (const ref of refs) creditSnaps.push(await transaction.get(ref));
+          const balance = Number(clientSnap.data().pts || 0);
+          if (balance < n) throw new Error('Saldo insuficiente.');
+          let remaining = n;
+          let trackedAvailable = 0;
+          creditSnaps.forEach(snap => { if (snap.exists) trackedAvailable += Number(snap.data().pontosDisponiveis || 0); });
+          const legacy = clientSnap.data().legacyPts === undefined ? Math.max(0, balance - trackedAvailable) : Number(clientSnap.data().legacyPts || 0);
+
+          creditSnaps.forEach(snap => {
+            if (!snap.exists || remaining <= 0) return;
+            const available = Number(snap.data().pontosDisponiveis || 0);
+            const used = Math.min(available, remaining);
+            if (used > 0) transaction.update(snap.ref, { pontosDisponiveis: available - used, status: used === available ? 'utilizado' : 'parcial' });
+            remaining -= used;
+          });
+          transaction.update(clientRef, { pts: balance - n, legacyPts: Math.max(0, legacy - remaining) });
+          transaction.set(clientRef.collection('movimentacoes').doc(), {
+            tipo: 'debito', origem: name, pontos: -n, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
         });
 
         modal('<h2>🎁 Resgatado!</h2><p class="small-text">' + name + ' foi resgatado com sucesso.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok!</button>');
@@ -835,9 +919,10 @@
       }
     }
 
-    function initApp() {
+    async function initApp() {
       document.querySelector('#auth').classList.remove('active');
       document.querySelector('#app-nav').style.display = 'grid';
+      try { await expirePoints(); } catch (error) { console.error('Erro ao processar vencimentos:', error); }
       listenToUserData();
       go('home');
     }
@@ -863,7 +948,7 @@
       return `<div class="nutri-card" onclick="${clickHandler}">
                 <div class="action-icon">${a.icon}</div>
                 <h3>${a.title}</h3>
-                <div class="points-added">+${a.pts} pts</div>
+                <div class="points-added">${a.pointsLabel || `+${a.pts} pts`}</div>
               </div>`;
     }
 
@@ -974,11 +1059,19 @@
         return;
       }
 
+      const purchaseFields = id === 'buy' ? `
+          <div class="form-group">
+            <label>Valor total da compra (R$)</label>
+            <input type="number" id="purchase-value" class="form-control" min="2" step="0.01" placeholder="Ex.: 59,90" required>
+            <div class="small-text" id="purchase-points-preview" style="margin-top:5px;">Informe o valor para calcular os pontos.</div>
+          </div>` : '';
+
       let html = `
         <h2>${item.icon} ${item.title}</h2>
         <p class="small-text">${item.desc}</p>
         
-        <form id="submission-form" style="margin-top:12px;" onsubmit="submitProofToAdmin(event, '${item.title}', ${item.pts})">
+        <form id="submission-form" style="margin-top:12px;" onsubmit="submitProofToAdmin(event, '${item.id}')">
+          ${purchaseFields}
           <div class="form-group">
             <label>Foto / Print / Comprovante (Obrigatório)</label>
             <input type="file" id="proof-input" class="form-control" accept="image/*" required>
@@ -1000,12 +1093,32 @@
       }
 
       modal(html);
+
+      if (id === 'buy') {
+        document.getElementById('purchase-value').addEventListener('input', (event) => {
+          const purchaseValue = Number(event.target.value || 0);
+          const calculatedPoints = Math.floor(purchaseValue / 2);
+          document.getElementById('purchase-points-preview').textContent = calculatedPoints > 0
+            ? `Esta compra vale ${calculatedPoints} ponto${calculatedPoints === 1 ? '' : 's'}.`
+            : 'Informe um valor de pelo menos R$ 2,00.';
+        });
+      }
     }
 
-    async function submitProofToAdmin(event, title, points) {
+    async function submitProofToAdmin(event, actionId) {
       event.preventDefault();
+      const action = A.find(item => item.id === actionId);
+      if (!action) return;
+      const title = action.title;
+      const purchaseValue = actionId === 'buy' ? Number(document.getElementById('purchase-value').value || 0) : null;
+      const points = actionId === 'buy' ? Math.floor(purchaseValue / 2) : action.pts;
       const btn = document.getElementById('btn-submit-proof');
       const fileInput = document.getElementById('proof-input');
+
+      if (actionId === 'buy' && (!Number.isFinite(purchaseValue) || purchaseValue < 2 || points < 1)) {
+        alert('Informe um valor de compra válido, a partir de R$ 2,00.');
+        return;
+      }
 
       if (!fileInput.files.length) {
         alert("Por favor, selecione uma imagem para anexar.");
@@ -1022,8 +1135,11 @@
         await db.collection("solicitacoes").add({
           clienteCpf: currentUserCPF,
           clienteNome: userProfile.name || 'Cliente',
+          acaoId: actionId,
           acao: title,
           pontos: points,
+          valorCompra: purchaseValue,
+          regraPontuacao: actionId === 'buy' ? '1 ponto a cada R$ 2 (arredondado para baixo)' : 'pontuação fixa',
           comprovanteUrl: imageBase64,
           status: "pendente",
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1140,6 +1256,8 @@
           btnSubmit.disabled = true;
           btnSubmit.textContent = "Enviando...";
 
+          const nextSurveyDate = new Date();
+          nextSurveyDate.setDate(nextSurveyDate.getDate() + 60);
           const dadosPesquisa = {
             clienteCpf: currentUserCPF,
             clienteNome: userProfile.name || 'Cliente',
@@ -1151,15 +1269,30 @@
           };
 
           try {
-            await db.collection("pesquisas").add(dadosPesquisa);
+            const clientRef = db.collection('clientes').doc(currentUserCPF);
+            const surveyRef = db.collection('pesquisas').doc();
+            const requestRef = db.collection('solicitacoes').doc();
 
-            await db.collection("solicitacoes").add({
-              clienteCpf: currentUserCPF,
-              clienteNome: userProfile.name || 'Cliente',
-              acao: "Pesquisa de Satisfação",
-              pontos: 10,
-              status: "pendente",
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            await db.runTransaction(async transaction => {
+              const clientSnap = await transaction.get(clientRef);
+              const currentRelease = clientSnap.data()?.nextSurveyAt;
+              if (currentRelease && currentRelease.toDate() > new Date()) {
+                throw new Error(`PESQUISA_BLOQUEADA|${currentRelease.toDate().toISOString()}`);
+              }
+              transaction.set(surveyRef, dadosPesquisa);
+              transaction.set(requestRef, {
+                clienteCpf: currentUserCPF,
+                clienteNome: userProfile.name || 'Cliente',
+                acaoId: 'survey',
+                acao: 'Pesquisa de Satisfação',
+                pontos: 10,
+                status: 'pendente',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+              transaction.update(clientRef, {
+                lastSurveyAt: firebase.firestore.FieldValue.serverTimestamp(),
+                nextSurveyAt: firebase.firestore.Timestamp.fromDate(nextSurveyDate)
+              });
             });
 
             window.fecharModalPesquisa();
@@ -1169,7 +1302,12 @@
             alert("🎉 Obrigado! Sua pesquisa foi enviada e os 10 pontos foram solicitados!");
           } catch (err) {
             console.error("Erro ao enviar pesquisa:", err);
-            alert("Erro ao enviar pesquisa. Tente novamente.");
+            if (err.message && err.message.startsWith('PESQUISA_BLOQUEADA|')) {
+              const releaseDate = new Date(err.message.split('|')[1]);
+              alert(`Você já respondeu à pesquisa. Uma nova resposta será liberada em ${releaseDate.toLocaleDateString('pt-BR')}.`);
+            } else {
+              alert("Erro ao enviar pesquisa. Tente novamente.");
+            }
             btnSubmit.disabled = false;
             btnSubmit.textContent = "Enviar Pesquisa e Receber Pontos";
           }
