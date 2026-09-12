@@ -342,7 +342,7 @@
     <!-- FIREBASE & SCRIPT DE LÓGICA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, query, where, getDocs, writeBatch, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, query, where, getDocs, writeBatch, increment, serverTimestamp, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Credenciais do Firebase
         const firebaseConfig = {
@@ -445,7 +445,7 @@
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td data-label="Cliente"><strong>${data.clienteNome || 'Cliente'}</strong></td>
-                            <td data-label="Ação">${data.acao || 'Ação'}</td>
+                            <td data-label="Ação">${data.acao || 'Ação'}${data.valorCompra ? `<br><small>Compra: ${Number(data.valorCompra).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</small>` : ''}</td>
                             <td data-label="Pontos"><span class="badge-points">+${data.pontos || 0} pts</span></td>
                             <td data-label="Comprovante">${data.comprovanteUrl ? `<a href="${data.comprovanteUrl}" target="_blank" style="color: #3B82F6;">Ver Anexo</a>` : 'Sem foto'}</td>
                             <td data-label="Ações">
@@ -506,10 +506,15 @@
                     await updateDoc(clientRef, { name, cpf, phone });
                     alert("✅ Cliente atualizado com sucesso!");
                 } else {
-                    await setDoc(clientRef, {
-                        name, cpf, phone, pts,
-                        createdAt: serverTimestamp()
-                    });
+                    const batch = writeBatch(db);
+                    batch.set(clientRef, { name, cpf, phone, pts, legacyPts: 0, createdAt: serverTimestamp() });
+                    if (pts > 0) {
+                        batch.set(doc(collection(clientRef, "movimentacoes")), {
+                            tipo: 'credito', origem: 'Saldo inicial', pontos: pts, pontosDisponiveis: pts,
+                            createdAt: serverTimestamp(), expiresAt: Timestamp.fromDate(addMonths(new Date(), 6)), status: 'ativo'
+                        });
+                    }
+                    await batch.commit();
                     alert("✅ Novo cliente cadastrado!");
                 }
 
@@ -577,6 +582,69 @@
             }
         };
 
+        function addMonths(date, months) {
+            const result = new Date(date);
+            const day = result.getDate();
+            result.setDate(1);
+            result.setMonth(result.getMonth() + months);
+            result.setDate(Math.min(day, new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate()));
+            return result;
+        }
+
+        window.registrarCompra = async (clienteId) => {
+            const cliente = clientsData.find(item => item.id === clienteId);
+            if (!cliente) return alert('Cliente não encontrado.');
+
+            const valorInput = prompt(`Registrar compra - ${cliente.nome}\n\nDigite o valor total da compra em reais:\n(Ex.: 59,90)`);
+            if (valorInput === null) return;
+
+            const valorLimpo = valorInput.trim().replace(/\s/g, '');
+            const valorNormalizado = valorLimpo.includes(',')
+                ? valorLimpo.replace(/\./g, '').replace(',', '.')
+                : valorLimpo;
+            const valorCompra = Number(valorNormalizado);
+            if (!Number.isFinite(valorCompra) || valorCompra < 2) {
+                return alert('Digite um valor válido, a partir de R$ 2,00.');
+            }
+
+            const pontosCompra = Math.floor(valorCompra / 2);
+            const valorFormatado = valorCompra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            if (!confirm(`${valorFormatado} gera ${pontosCompra} ponto${pontosCompra === 1 ? '' : 's'}.\n\nConfirmar lançamento?`)) return;
+
+            try {
+                const clientRef = doc(db, 'clientes', clienteId);
+                const movementRef = doc(collection(clientRef, 'movimentacoes'));
+                const expiresAt = Timestamp.fromDate(addMonths(new Date(), 6));
+
+                await runTransaction(db, async transaction => {
+                    const clientSnap = await transaction.get(clientRef);
+                    if (!clientSnap.exists()) throw new Error('Cliente não encontrado.');
+
+                    const balance = Number(clientSnap.data().pts || 0);
+                    const clientUpdate = { pts: balance + pontosCompra };
+                    if (clientSnap.data().legacyPts === undefined) clientUpdate.legacyPts = balance;
+
+                    transaction.update(clientRef, clientUpdate);
+                    transaction.set(movementRef, {
+                        tipo: 'credito',
+                        origem: 'Compra em loja',
+                        valorCompra,
+                        regraPontuacao: '1 ponto a cada R$ 2 (arredondado para baixo)',
+                        pontos: pontosCompra,
+                        pontosDisponiveis: pontosCompra,
+                        createdAt: serverTimestamp(),
+                        expiresAt,
+                        status: 'ativo'
+                    });
+                });
+
+                alert(`✅ Compra registrada!\n${pontosCompra} ponto${pontosCompra === 1 ? '' : 's'} adicionados com validade de 6 meses.`);
+            } catch (err) {
+                console.error('Erro ao registrar compra:', err);
+                alert('Erro ao registrar compra: ' + err.message);
+            }
+        };
+
         window.alterarPontosManualmente = async (clienteId, nomeCliente, pontosAtuais) => {
             const valorInput = prompt(`Ajuste de Pontos em Loja - ${nomeCliente}\n\nPontos atuais: ${pontosAtuais}\nDigite os pontos a somar ou subtrair:\n(Ex: 100 para somar, -50 para subtrair)`);
 
@@ -585,7 +653,21 @@
                 if (isNaN(quantidade) || quantidade === 0) return alert("Digite um número válido.");
 
                 try {
-                    await updateDoc(doc(db, "clientes", clienteId), { pts: increment(quantidade) });
+                    const clientRef = doc(db, "clientes", clienteId);
+                    if (quantidade > 0) {
+                        await runTransaction(db, async transaction => {
+                            const clientSnap = await transaction.get(clientRef);
+                            const balance = Number(clientSnap.data().pts || 0);
+                            if (clientSnap.data().legacyPts === undefined) transaction.update(clientRef, { legacyPts: balance, pts: balance + quantidade });
+                            else transaction.update(clientRef, { pts: balance + quantidade });
+                            transaction.set(doc(collection(clientRef, "movimentacoes")), {
+                                tipo: 'credito', origem: 'Ajuste manual', pontos: quantidade, pontosDisponiveis: quantidade,
+                                createdAt: serverTimestamp(), expiresAt: Timestamp.fromDate(addMonths(new Date(), 6)), status: 'ativo'
+                            });
+                        });
+                    } else {
+                        await updateDoc(clientRef, { pts: increment(quantidade) });
+                    }
                     alert("✅ Pontuação atualizada!");
                 } catch (err) { console.error(err); alert("Erro ao atualizar pontos."); }
             }
@@ -593,13 +675,33 @@
 
         window.aprovarSolicitacao = async (solId, clienteCpf, pontos) => {
             try {
-                if (clienteCpf) {
-                    const cleanCpf = clienteCpf.replace(/\D/g, '');
-                    await updateDoc(doc(db, "clientes", cleanCpf), { pts: increment(pontos) });
-                }
-                await updateDoc(doc(db, "solicitacoes", solId), { status: "aprovado" });
-                alert("✅ Comprovação aprovada!");
-            } catch (err) { console.error(err); }
+                if (!clienteCpf) throw new Error('CPF do cliente não informado.');
+                const cleanCpf = clienteCpf.replace(/\D/g, '');
+                const clientRef = doc(db, "clientes", cleanCpf);
+                const requestRef = doc(db, "solicitacoes", solId);
+                const movementRef = doc(collection(clientRef, "movimentacoes"));
+                const expiresAt = Timestamp.fromDate(addMonths(new Date(), 6));
+
+                await runTransaction(db, async transaction => {
+                    const requestSnap = await transaction.get(requestRef);
+                    const clientSnap = await transaction.get(clientRef);
+                    if (!requestSnap.exists() || requestSnap.data().status !== 'pendente') throw new Error('Esta solicitação já foi processada.');
+                    if (!clientSnap.exists()) throw new Error('Cliente não encontrado.');
+                    const approvedPoints = Number(requestSnap.data().pontos ?? pontos ?? 0);
+                    if (!Number.isInteger(approvedPoints) || approvedPoints <= 0) throw new Error('Pontuação inválida.');
+                    const balance = Number(clientSnap.data().pts || 0);
+                    const clientUpdate = { pts: balance + approvedPoints };
+                    if (clientSnap.data().legacyPts === undefined) clientUpdate.legacyPts = balance;
+                    transaction.update(clientRef, clientUpdate);
+                    transaction.set(movementRef, {
+                        tipo: 'credito', origem: requestSnap.data().acao || 'Ação aprovada',
+                        pontos: approvedPoints, pontosDisponiveis: approvedPoints,
+                        solicitacaoId: solId, createdAt: serverTimestamp(), expiresAt, status: 'ativo'
+                    });
+                    transaction.update(requestRef, { status: 'aprovado', approvedAt: serverTimestamp(), expiresAt });
+                });
+                alert("✅ Comprovação aprovada! Os pontos vencem individualmente em 6 meses.");
+            } catch (err) { console.error(err); alert('Erro ao aprovar: ' + err.message); }
         };
 
         window.recusarSolicitacao = async (solId) => {
@@ -629,6 +731,9 @@
                             </button>
                             <button class="btn-action" onclick="alterarPontosManualmente('${client.id}', '${client.nome}', ${client.pontos})">
                                 <i data-lucide="plus-circle"></i> Pontos
+                            </button>
+                            <button class="btn-action" onclick="registrarCompra('${client.id}')">
+                                <i data-lucide="shopping-cart"></i> Compra
                             </button>
                             <button class="btn-action delete" onclick="adminDeleteCustomer('${client.id}', '${client.cpf}', '${client.nome}')">
                                 <i data-lucide="trash-2"></i> Excluir
