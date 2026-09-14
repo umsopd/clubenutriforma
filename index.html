@@ -543,7 +543,7 @@
         </div>
         <div class="nutri-card">
           <b id="referral-code-display">CÓDIGO</b>
-          <p class="small-text" style="margin-top:4px">Compartilhe seu código e ganhe pontos quando seu amigo fizer a primeira compra.</p>
+          <p class="small-text" style="margin-top:4px">Compartilhe seu código. Quando ele for apresentado em uma compra, você ganha +30 pontos pela indicação.</p>
           <button class="nutri-btn primary" onclick="copy()" style="margin-top:10px; width:100%">Copiar código</button>
         </div>
 
@@ -642,8 +642,7 @@
 
     const A = [
       { id: 'buy', icon: '🛒', title: 'Fazer uma compra', pts: null, pointsLabel: '1 pt / R$ 2', desc: 'Ganhe 1 ponto a cada R$ 2 gastos. Informe o valor e anexe o comprovante ou nota do pedido.' },
-      { id: 'refer', icon: '👥', title: 'Indicar um amigo', pts: 30, desc: 'Envie seu cupom exclusivo para amigos.' },
-      { id: 'friend_buy', icon: '🎉', title: 'Amigo faz a 1ª compra', pts: 30, desc: 'Envie o comprovante da compra do seu amigo que utilizou seu cupom.' },
+      { id: 'refer', icon: '👥', title: 'Indicar um amigo', pts: 30, desc: 'Compartilhe seu código. Você recebe +30 pontos quando ele for apresentado em uma compra.' },
       { id: 'review', icon: '⭐', title: 'Avaliar uma compra', pts: 10, desc: 'Envie print da sua avaliação sobre nossos produtos.' },
       { id: 'insta', icon: '📸', title: 'Marcar @Nutriforma', pts: 15, desc: 'Poste nos Stories usando nossos produtos e envie o print.' },
       { id: 'birthday', icon: '🎂', title: 'Aniversário', pts: 30, desc: 'Envie foto do seu documento para comprovação no mês de aniversário.' },
@@ -698,6 +697,15 @@
       v = v.replace(/(\d{3})(\d)/, "$1.$2");
       v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
       i.value = v;
+    }
+
+    function buildReferralCode(name, cpf) {
+      const firstName = (name || 'CLIENTE')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .split(' ')[0].toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CLIENTE';
+      const clean = cleanCPF(cpf || '');
+      const suffix = clean.slice(-4) || '0000';
+      return `${firstName}${suffix}`;
     }
 
     function switchAuthTab(type) {
@@ -778,6 +786,7 @@
           city: 'Curitiba',
           state: 'PR',
           goal: 'Saúde & Bem-Estar',
+          referralCode: buildReferralCode(name, rawCPF),
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
@@ -812,6 +821,14 @@
             pts = data.pts || 0;
             totalAccumulatedPoints = Number(data.totalPontosAcumulados ?? data.pts ?? 0);
             userProfile = data;
+
+            if (!data.referralCode) {
+              const generatedCode = buildReferralCode(data.name, currentUserCPF);
+              userProfile.referralCode = generatedCode;
+              db.collection('clientes').doc(currentUserCPF).update({ referralCode: generatedCode })
+                .catch(err => console.warn('Não foi possível salvar o código de indicação:', err));
+            }
+
             render();
           }
         }, (error) => {
@@ -1034,7 +1051,7 @@
       document.querySelector('#display-address').textContent = userProfile.address ? `${userProfile.address} - ${userProfile.city || ''}/${userProfile.state || ''}` : '-';
       document.querySelector('#display-goal').textContent = userProfile.goal || 'Saúde & Bem-Estar';
       
-      const refCode = firstName.toUpperCase() + '10';
+      const refCode = userProfile.referralCode || buildReferralCode(userProfile.name, currentUserCPF);
       document.querySelector('#referral-code-display').textContent = refCode;
 
       document.querySelector('#rewardsList').innerHTML = R.map(r => {
@@ -1103,11 +1120,12 @@
       if (!item) return;
       
       if (id === 'refer') {
-        const refCode = (userProfile.name || 'CLIENTE').split(' ')[0].toUpperCase() + '10';
+        const refCode = userProfile.referralCode || buildReferralCode(userProfile.name, currentUserCPF);
         let html = `
           <h2>${item.icon} ${item.title}</h2>
           <p class="small-text">${item.desc}</p>
           <p class="small-text" style="margin-top:10px;">Seu código exclusivo de indicação é: <b>${refCode}</b></p>
+          <div class="nutri-notice" style="margin-top:12px;"><b>Como funciona:</b> seu amigo apresenta este código no momento da compra. Após o registro da compra, você recebe +30 pontos pela indicação.</div>
           <button class="nutri-btn primary" style="width:100%; margin-top:15px;" onclick="copy();">Copiar e Compartilhar</button>
         `;
         modal(html);
