@@ -446,9 +446,9 @@
         </div>
         <div class="nutri-card">
           <div class="action-icon">🎁</div>
-          <h3>R$ 10 OFF</h3>
-          <div class="small-text">Resgate com 100 pontos.</div>
-          <button class="nutri-btn primary" style="margin-top:10px; width:100%" onclick="redeemN(100, 'R$ 10 OFF')">Resgatar</button>
+          <h3>Squeeze Exclusiva</h3>
+          <div class="small-text">Resgate com 300 pontos.</div>
+          <button class="nutri-btn primary" style="margin-top:10px; width:100%" onclick="redeemN('start')">Resgatar</button>
         </div>
       </main>
     </section>
@@ -488,7 +488,10 @@
           <div class="hello" style="margin-top:4px">Troque seus pontos por benefícios exclusivos.</div>
         </div>
       </header>
-      <main class="main" id="rewardsList"></main>
+      <main class="main">
+        <div class="nutri-notice" style="margin-bottom:14px;">Saldo disponível para resgates: <b><span id="rewards-balance">0</span> pontos</b></div>
+        <div id="rewardsList"></div>
+      </main>
     </section>
 
     <!-- TELA: PERFIL -->
@@ -528,7 +531,7 @@
           <h2>Seu Progresso</h2>
         </div>
         <div class="nutri-card">
-          <div class="pts-value" style="font-size:26px; color:#111;"><span id="pp">0</span> pontos</div>
+          <div class="pts-value" style="font-size:26px; color:#111;"><span id="pp">0</span> pontos acumulados</div>
           <div class="bar-container">
             <div class="bar" style="background:#eee"><i id="pprog" style="background:var(--nutri-red); width:0%"></i></div>
           </div>
@@ -630,9 +633,12 @@
     const db = firebase.firestore();
 
     let pts = 0;
+    let totalAccumulatedPoints = 0;
     let currentUserCPF = null;
     let userProfile = {};
     let unsubscribeUserListener = null;
+    let unsubscribePrizeListener = null;
+    let prizeInventory = {};
 
     const A = [
       { id: 'buy', icon: '🛒', title: 'Fazer uma compra', pts: null, pointsLabel: '1 pt / R$ 2', desc: 'Ganhe 1 ponto a cada R$ 2 gastos. Informe o valor e anexe o comprovante ou nota do pedido.' },
@@ -646,10 +652,11 @@
     ];
 
     const R = [
-      [100, 'R$ 10 OFF'],
-      [150, 'Brinde Nutriforma'],
-      [250, 'R$ 20 OFF'],
-      [400, 'Kit exclusivo']
+      { id: 'start', level: 'START', points: 300, name: 'Squeeze Exclusiva', stock: 50, unlimited: false, validDays: 30 },
+      { id: 'fit', level: 'FIT', points: 450, name: 'R$ 25,00 de desconto na próxima compra', stock: null, unlimited: true, validDays: 30 },
+      { id: 'prime', level: 'PRIME', points: 600, name: 'Toalha Nutriforma + Sachê Whey', stock: 30, unlimited: false, validDays: 30 },
+      { id: 'platinum', level: 'PLATINUM', points: 850, name: 'R$ 70,00 em produtos à escolha', stock: null, unlimited: true, validDays: 45 },
+      { id: 'vip', level: 'VIP', points: 1200, name: 'Kit Nutri (Camiseta + Coqueteleira + Whey)', stock: 15, unlimited: false, validDays: 60 }
     ];
 
     // --- FUNÇÕES DE NAVEGAÇÃO E UTILS ---
@@ -763,6 +770,7 @@
           phone: phone || '',
           password: pass,
           pts: 50,
+          totalPontosAcumulados: 50,
           legacyPts: 0,
           email: '',
           dob: '',
@@ -802,6 +810,7 @@
           if (doc.exists) {
             const data = doc.data();
             pts = data.pts || 0;
+            totalAccumulatedPoints = Number(data.totalPontosAcumulados ?? data.pts ?? 0);
             userProfile = data;
             render();
           }
@@ -870,15 +879,30 @@
             transaction.update(snap.ref, { pontosDisponiveis: 0, status: 'expirado', expiredAt: firebase.firestore.FieldValue.serverTimestamp() });
           }
         });
+
+      if (unsubscribePrizeListener) unsubscribePrizeListener();
+      unsubscribePrizeListener = db.collection('premios').onSnapshot(snapshot => {
+        prizeInventory = {};
+        snapshot.forEach(item => { prizeInventory[item.id] = item.data(); });
+        render();
+      }, error => console.error('Erro ao carregar estoque:', error));
         if (expired > 0) transaction.update(clientRef, { pts: Math.max(0, Number(clientSnap.data().pts || 0) - expired) });
       });
     }
 
-    async function redeemN(n, name) {
+    function addDays(date, days) {
+      const result = new Date(date);
+      result.setDate(result.getDate() + days);
+      return result;
+    }
+
+    async function redeemN(rewardId) {
+      const reward = R.find(item => item.id === rewardId);
+      if (!reward) return;
       await expirePoints();
       const clientRef = db.collection('clientes').doc(currentUserCPF);
       const currentClient = await clientRef.get();
-      if (Number(currentClient.data()?.pts || 0) < n) {
+      if (Number(currentClient.data()?.pts || 0) < reward.points) {
         modal('<h2>🔒 Saldo Insuficiente</h2><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Continuar</button>');
         return;
       }
@@ -887,14 +911,22 @@
         const snapshot = await clientRef.collection('movimentacoes').get();
         const refs = snapshot.docs.filter(m => m.data().tipo === 'credito' && Number(m.data().pontosDisponiveis || 0) > 0 && m.data().expiresAt)
           .sort((a, b) => a.data().expiresAt.toMillis() - b.data().expiresAt.toMillis()).map(m => m.ref);
+        const prizeRef = db.collection('premios').doc(reward.id);
+        const redemptionRef = db.collection('resgates').doc();
+        const validUntil = firebase.firestore.Timestamp.fromDate(addDays(new Date(), reward.validDays));
+        const redemptionCode = `NUTRI-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
         await db.runTransaction(async transaction => {
           const clientSnap = await transaction.get(clientRef);
           const creditSnaps = [];
           for (const ref of refs) creditSnaps.push(await transaction.get(ref));
+          const prizeSnap = await transaction.get(prizeRef);
           const balance = Number(clientSnap.data().pts || 0);
-          if (balance < n) throw new Error('Saldo insuficiente.');
-          let remaining = n;
+          if (balance < reward.points) throw new Error('SALDO_INSUFICIENTE');
+
+          const currentStock = prizeSnap.exists ? Number(prizeSnap.data().estoqueAtual ?? reward.stock ?? 0) : Number(reward.stock ?? 0);
+          if (!reward.unlimited && currentStock <= 0) throw new Error('ESTOQUE_ESGOTADO');
+          let remaining = reward.points;
           let trackedAvailable = 0;
           creditSnaps.forEach(snap => { if (snap.exists) trackedAvailable += Number(snap.data().pontosDisponiveis || 0); });
           const legacy = clientSnap.data().legacyPts === undefined ? Math.max(0, balance - trackedAvailable) : Number(clientSnap.data().legacyPts || 0);
@@ -906,16 +938,31 @@
             if (used > 0) transaction.update(snap.ref, { pontosDisponiveis: available - used, status: used === available ? 'utilizado' : 'parcial' });
             remaining -= used;
           });
-          transaction.update(clientRef, { pts: balance - n, legacyPts: Math.max(0, legacy - remaining) });
+          transaction.update(clientRef, { pts: balance - reward.points, legacyPts: Math.max(0, legacy - remaining) });
           transaction.set(clientRef.collection('movimentacoes').doc(), {
-            tipo: 'debito', origem: name, pontos: -n, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            tipo: 'debito', origem: `Resgate: ${reward.name}`, pontos: -reward.points,
+            resgateId: redemptionRef.id, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          transaction.set(prizeRef, {
+            nome: reward.name, nivel: reward.level, pontosNecessarios: reward.points,
+            ilimitado: reward.unlimited, estoqueInicial: reward.stock,
+            estoqueAtual: reward.unlimited ? null : currentStock - 1,
+            validadeDias: reward.validDays, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          transaction.set(redemptionRef, {
+            clienteCpf: currentUserCPF, clienteNome: userProfile.name || 'Cliente',
+            premioId: reward.id, premio: reward.name, nivel: reward.level,
+            pontosUtilizados: reward.points, codigo: redemptionCode,
+            status: 'disponivel', createdAt: firebase.firestore.FieldValue.serverTimestamp(), validUntil
           });
         });
 
-        modal('<h2>🎁 Resgatado!</h2><p class="small-text">' + name + ' foi resgatado com sucesso.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok!</button>');
+        modal(`<h2>🎁 Resgatado!</h2><p class="small-text"><b>${reward.name}</b> foi resgatado com sucesso.</p><p class="small-text" style="margin-top:8px;">Código: <b>${redemptionCode}</b><br>Use em até ${reward.validDays} dias.</p><button class="nutri-btn primary" style="width:100%; margin-top:10px;" onclick="closeM()">Ok!</button>`);
       } catch (e) {
         console.error(e);
-        alert("Erro ao resgatar pontos: " + e.message);
+        if (e.message === 'ESTOQUE_ESGOTADO') alert('Este prêmio está esgotado.');
+        else if (e.message === 'SALDO_INSUFICIENTE') alert('Você não possui saldo suficiente.');
+        else alert("Erro ao resgatar pontos: " + e.message);
       }
     }
 
@@ -929,6 +976,7 @@
 
     function logout() {
       if (unsubscribeUserListener) unsubscribeUserListener();
+      if (unsubscribePrizeListener) unsubscribePrizeListener();
       localStorage.removeItem('nutri_active_cpf');
       currentUserCPF = null;
       document.querySelector('#app-nav').style.display = 'none';
@@ -937,7 +985,7 @@
     }
 
     function lv() {
-      return pts >= 250 ? 'PRIME' : pts >= 100 ? 'FIT' : 'START';
+      return totalAccumulatedPoints >= 1200 ? 'VIP' : totalAccumulatedPoints >= 850 ? 'PLATINUM' : totalAccumulatedPoints >= 600 ? 'PRIME' : totalAccumulatedPoints >= 450 ? 'FIT' : 'START';
     }
 
     function card(a) {
@@ -953,22 +1001,26 @@
     }
 
     function render() {
-      let l = lv(),
-        n = l === 'START' ? 100 : l === 'FIT' ? 250 : null;
+      const l = lv();
+      const nextLevel = totalAccumulatedPoints < 450 ? { points: 450, name: 'FIT', base: 0 }
+        : totalAccumulatedPoints < 600 ? { points: 600, name: 'PRIME', base: 450 }
+        : totalAccumulatedPoints < 850 ? { points: 850, name: 'PLATINUM', base: 600 }
+        : totalAccumulatedPoints < 1200 ? { points: 1200, name: 'VIP', base: 850 } : null;
 
       document.querySelector('#level').textContent = l;
       document.querySelector('#pts').textContent = pts;
-      document.querySelector('#next').textContent = n ? (n - pts) + ' pts para ' + (n === 100 ? 'FIT' : 'PRIME') : 'Nível máximo alcançado';
+      document.querySelector('#rewards-balance').textContent = pts;
+      document.querySelector('#next').textContent = nextLevel ? (nextLevel.points - totalAccumulatedPoints) + ' pts acumulados para ' + nextLevel.name : 'Nível máximo alcançado';
 
-      let w = n ? Math.min(100, (pts - (l === 'START' ? 0 : 100)) / (n - (l === 'START' ? 0 : 100)) * 100) : 100;
+      const w = nextLevel ? Math.max(0, Math.min(100, (totalAccumulatedPoints - nextLevel.base) / (nextLevel.points - nextLevel.base) * 100)) : 100;
 
       document.querySelector('#prog').style.width = w + '%';
       document.querySelector('#quick').innerHTML = A.slice(0, 4).map(card).join('');
       document.querySelector('#all').innerHTML = A.map(card).join('');
       document.querySelector('#pl').textContent = l;
-      document.querySelector('#pp').textContent = pts;
+      document.querySelector('#pp').textContent = totalAccumulatedPoints;
       document.querySelector('#pprog').style.width = w + '%';
-      document.querySelector('#pn').textContent = n ? 'Faltam ' + (n - pts) + ' pontos para ' + (n === 100 ? 'FIT' : 'PRIME') + '.' : 'Você chegou ao nível PRIME!';
+      document.querySelector('#pn').textContent = nextLevel ? 'Faltam ' + (nextLevel.points - totalAccumulatedPoints) + ' pontos acumulados para ' + nextLevel.name + '.' : 'Você chegou ao nível VIP!';
 
       const firstName = (userProfile.name || 'Cliente').split(' ')[0];
       document.querySelectorAll('.user-first-name').forEach(el => el.textContent = firstName);
@@ -985,14 +1037,17 @@
       const refCode = firstName.toUpperCase() + '10';
       document.querySelector('#referral-code-display').textContent = refCode;
 
-      document.querySelector('#rewardsList').innerHTML = R.map(r =>
-        `<div class="nutri-card" style="margin-bottom:12px;opacity:${pts < r[0] ? .55 : 1}">
+      document.querySelector('#rewardsList').innerHTML = R.map(r => {
+        const currentStock = r.unlimited ? null : Number(prizeInventory[r.id]?.estoqueAtual ?? r.stock);
+        const unavailable = pts < r.points || (!r.unlimited && currentStock <= 0);
+        return `<div class="nutri-card" style="margin-bottom:12px;opacity:${unavailable ? .55 : 1}">
           <div class="action-icon">🎁</div>
-          <h3>${r[1]}</h3>
-          <div class="small-text">${r[0]} pontos</div>
-          <button class="nutri-btn primary" style="margin-top:10px; width:100%" ${pts < r[0] ? 'disabled' : ''} onclick="redeemN(${r[0]},'${r[1]}')">${pts >= r[0] ? 'Resgatar' : 'Bloqueado'}</button>
-        </div>`
-      ).join('');
+          <div class="points-added">${r.level}</div>
+          <h3>${r.name}</h3>
+          <div class="small-text">${r.points.toLocaleString('pt-BR')} pontos • uso em até ${r.validDays} dias<br>${r.unlimited ? 'Disponibilidade ilimitada' : `Estoque disponível: ${currentStock} un.`}</div>
+          <button class="nutri-btn primary" style="margin-top:10px; width:100%" ${unavailable ? 'disabled' : ''} onclick="redeemN('${r.id}')">${!r.unlimited && currentStock <= 0 ? 'Esgotado' : pts >= r.points ? 'Resgatar' : 'Saldo insuficiente'}</button>
+        </div>`;
+      }).join('');
     }
 
     function compressImage(file, maxWidth = 1024, quality = 0.7) {
