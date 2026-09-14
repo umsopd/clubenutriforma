@@ -412,6 +412,22 @@
             carregarDadosFirebase();
         }
 
+        function cleanCpf(value) {
+            return String(value || '').replace(/\D/g, '');
+        }
+
+        function buildReferralCode(name, cpf) {
+            const firstName = (name || 'CLIENTE')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .split(' ')[0].toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CLIENTE';
+            const suffix = cleanCpf(cpf).slice(-4) || '0000';
+            return `${firstName}${suffix}`;
+        }
+
+        function normalizeReferralCode(value) {
+            return String(value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+        }
+
         // TABELAS E COMPONENTES
         let clientsData = [];
         const tableBody = document.getElementById('admin-table-body');
@@ -449,7 +465,8 @@
                         cpf: data.cpf || docSnap.id,
                         phone: data.phone || 'N/A',
                         pontos: pontos,
-                        totalAcumulado
+                        totalAcumulado,
+                        referralCode: data.referralCode || buildReferralCode(data.name || data.nome || 'Cliente', data.rawCPF || data.cpf || docSnap.id)
                     });
                     sumPoints += totalAcumulado;
                 });
@@ -573,7 +590,11 @@
                     alert("✅ Cliente atualizado com sucesso!");
                 } else {
                     const batch = writeBatch(db);
-                    batch.set(clientRef, { name, cpf, phone, pts, legacyPts: 0, totalPontosAcumulados: pts, createdAt: serverTimestamp() });
+                    batch.set(clientRef, {
+                        name, cpf, phone, pts, legacyPts: 0, totalPontosAcumulados: pts,
+                        referralCode: buildReferralCode(name, targetDocId),
+                        createdAt: serverTimestamp()
+                    });
                     if (pts > 0) {
                         batch.set(doc(collection(clientRef, "movimentacoes")), {
                             tipo: 'credito', origem: 'Saldo inicial', pontos: pts, pontosDisponiveis: pts,
@@ -677,23 +698,60 @@
                 return alert('Digite um valor válido, a partir de R$ 2,00.');
             }
 
+            const codigoInput = prompt(
+                `Código de indicação (opcional)\n\nSe o cliente apresentou um código de indicação, digite agora.\nSe não apresentou, deixe em branco e confirme.`
+            );
+            if (codigoInput === null) return;
+
+            const codigoIndicacao = normalizeReferralCode(codigoInput);
+            let indicador = null;
+
+            if (codigoIndicacao) {
+                const matches = clientsData.filter(item => normalizeReferralCode(item.referralCode) === codigoIndicacao);
+                if (matches.length === 0) return alert('Código de indicação não encontrado. Confira o código e tente novamente.');
+                if (matches.length > 1) return alert('Este código está duplicado no sistema. Não registre a compra até corrigir os cadastros.');
+                indicador = matches[0];
+                if (indicador.id === cliente.id) return alert('O cliente não pode usar o próprio código de indicação.');
+            }
+
             const pontosCompra = Math.floor(valorCompra / 2);
             const valorFormatado = valorCompra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            if (!confirm(`${valorFormatado} gera ${pontosCompra} ponto${pontosCompra === 1 ? '' : 's'}.\n\nConfirmar lançamento?`)) return;
+            const resumoIndicacao = indicador
+                ? `\n\nIndicação: ${indicador.nome} receberá +30 pontos pelo código ${codigoIndicacao}.`
+                : '\n\nSem código de indicação.';
+            if (!confirm(`${valorFormatado} gera ${pontosCompra} ponto${pontosCompra === 1 ? '' : 's'} para ${cliente.nome}.${resumoIndicacao}\n\nConfirmar lançamento?`)) return;
 
             try {
                 const clientRef = doc(db, 'clientes', clienteId);
                 const movementRef = doc(collection(clientRef, 'movimentacoes'));
                 const expiresAt = Timestamp.fromDate(addMonths(new Date(), 6));
+                const referrerRef = indicador ? doc(db, 'clientes', indicador.id) : null;
+                const referralMovementRef = indicador ? doc(collection(referrerRef, 'movimentacoes')) : null;
 
                 await runTransaction(db, async transaction => {
                     const clientSnap = await transaction.get(clientRef);
                     if (!clientSnap.exists()) throw new Error('Cliente não encontrado.');
 
-                    const balance = Number(clientSnap.data().pts || 0);
-                    const accumulated = Number(clientSnap.data().totalPontosAcumulados ?? balance);
+                    let referrerSnap = null;
+                    if (referrerRef) {
+                        referrerSnap = await transaction.get(referrerRef);
+                        if (!referrerSnap.exists()) throw new Error('Cliente indicador não encontrado.');
+                    }
+
+                    const buyerData = clientSnap.data();
+                    if (indicador && buyerData.referralCodeUsed) {
+                        throw new Error(`Este cliente já utilizou o código de indicação ${buyerData.referralCodeUsed} em uma compra anterior.`);
+                    }
+
+                    const balance = Number(buyerData.pts || 0);
+                    const accumulated = Number(buyerData.totalPontosAcumulados ?? balance);
                     const clientUpdate = { pts: balance + pontosCompra, totalPontosAcumulados: accumulated + pontosCompra };
-                    if (clientSnap.data().legacyPts === undefined) clientUpdate.legacyPts = balance;
+                    if (buyerData.legacyPts === undefined) clientUpdate.legacyPts = balance;
+                    if (indicador) {
+                        clientUpdate.referralCodeUsed = codigoIndicacao;
+                        clientUpdate.referredByCpf = indicador.cpf;
+                        clientUpdate.referralUsedAt = serverTimestamp();
+                    }
 
                     transaction.update(clientRef, clientUpdate);
                     transaction.set(movementRef, {
@@ -703,13 +761,40 @@
                         regraPontuacao: '1 ponto a cada R$ 2 (arredondado para baixo)',
                         pontos: pontosCompra,
                         pontosDisponiveis: pontosCompra,
+                        codigoIndicacao: codigoIndicacao || null,
                         createdAt: serverTimestamp(),
                         expiresAt,
                         status: 'ativo'
                     });
+
+                    if (indicador && referrerSnap) {
+                        const refData = referrerSnap.data();
+                        const refBalance = Number(refData.pts || 0);
+                        const refAccumulated = Number(refData.totalPontosAcumulados ?? refBalance);
+                        const refUpdate = {
+                            pts: refBalance + 30,
+                            totalPontosAcumulados: refAccumulated + 30
+                        };
+                        if (refData.legacyPts === undefined) refUpdate.legacyPts = refBalance;
+
+                        transaction.update(referrerRef, refUpdate);
+                        transaction.set(referralMovementRef, {
+                            tipo: 'credito',
+                            origem: 'Indicação de amigo',
+                            pontos: 30,
+                            pontosDisponiveis: 30,
+                            codigoIndicacao,
+                            indicadoCpf: cliente.cpf,
+                            indicadoNome: cliente.nome,
+                            createdAt: serverTimestamp(),
+                            expiresAt,
+                            status: 'ativo'
+                        });
+                    }
                 });
 
-                alert(`✅ Compra registrada!\n${pontosCompra} ponto${pontosCompra === 1 ? '' : 's'} adicionados com validade de 6 meses.`);
+                const msgIndicacao = indicador ? `\n🎉 ${indicador.nome} recebeu +30 pontos pela indicação.` : '';
+                alert(`✅ Compra registrada!\n${pontosCompra} ponto${pontosCompra === 1 ? '' : 's'} adicionados ao comprador com validade de 6 meses.${msgIndicacao}`);
             } catch (err) {
                 console.error('Erro ao registrar compra:', err);
                 alert('Erro ao registrar compra: ' + err.message);
