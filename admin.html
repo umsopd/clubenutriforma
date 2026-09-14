@@ -266,6 +266,29 @@
                 </div>
             </div>
 
+            <!-- SEÇÃO: Histórico de Resgates -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>Histórico de Resgates</h2>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Prêmio</th>
+                                <th>Pontos</th>
+                                <th>Código / Validade</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="redemptions-table-body">
+                            <tr><td colspan="5" class="empty-message">Nenhum resgate realizado.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- SEÇÃO: Clientes Cadastrados -->
             <div class="content-card">
                 <div class="card-header">
@@ -287,7 +310,7 @@
                                 <th>Nome</th>
                                 <th>CPF</th>
                                 <th>Telefone</th>
-                                <th>Pontos</th>
+                                <th>Saldo / Nível</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -394,6 +417,7 @@
         const tableBody = document.getElementById('admin-table-body');
         const pendingTable = document.getElementById('pending-table-body');
         const surveysTable = document.getElementById('surveys-table-body');
+        const redemptionsTable = document.getElementById('redemptions-table-body');
         const totalClientsEl = document.getElementById('total-clients');
         const totalPointsEl = document.getElementById('total-points');
         const searchInput = document.getElementById('search-input');
@@ -418,14 +442,16 @@
                     const data = docSnap.data();
                     const pontos = Number(data.pts || data.pontos || 0);
 
+                    const totalAcumulado = Number(data.totalPontosAcumulados ?? pontos);
                     clientsData.push({
                         id: docSnap.id,
                         nome: data.name || data.nome || 'Sem nome',
                         cpf: data.cpf || docSnap.id,
                         phone: data.phone || 'N/A',
-                        pontos: pontos
+                        pontos: pontos,
+                        totalAcumulado
                     });
-                    sumPoints += pontos;
+                    sumPoints += totalAcumulado;
                 });
 
                 totalClientsEl.textContent = clientsData.length;
@@ -485,7 +511,47 @@
                     surveysTable.appendChild(row);
                 });
             });
+
+            // Escutar Histórico de Resgates
+            onSnapshot(collection(db, "resgates"), (snapshot) => {
+                redemptionsTable.innerHTML = '';
+                const redemptions = snapshot.docs.map(item => ({ id: item.id, ...item.data() }))
+                    .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+
+                if (!redemptions.length) {
+                    redemptionsTable.innerHTML = `<tr><td colspan="5" class="empty-message">Nenhum resgate realizado.</td></tr>`;
+                    return;
+                }
+
+                redemptions.forEach(redemption => {
+                    const validDate = redemption.validUntil?.toDate?.();
+                    const expired = redemption.status !== 'utilizado' && validDate && validDate < new Date();
+                    const status = expired ? 'vencido' : (redemption.status || 'disponível');
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td data-label="Cliente"><strong>${redemption.clienteNome || 'Cliente'}</strong><br><small>${redemption.clienteCpf || ''}</small></td>
+                        <td data-label="Prêmio">${redemption.premio || '-'}</td>
+                        <td data-label="Pontos"><span class="badge-points">-${redemption.pontosUtilizados || 0} pts</span></td>
+                        <td data-label="Código / Validade"><strong>${redemption.codigo || '-'}</strong><br><small>${validDate ? validDate.toLocaleDateString('pt-BR') : '-'}</small></td>
+                        <td data-label="Status">${status === 'disponivel' || status === 'disponível'
+                            ? `<button class="btn-approve" onclick="marcarResgateUtilizado('${redemption.id}')"><i data-lucide="check"></i> Marcar utilizado</button>`
+                            : `<strong>${status.toUpperCase()}</strong>`}</td>`;
+                    redemptionsTable.appendChild(row);
+                });
+                lucide.createIcons();
+            });
         }
+
+        window.marcarResgateUtilizado = async (resgateId) => {
+            if (!confirm('Confirmar que este prêmio foi utilizado?')) return;
+            try {
+                await updateDoc(doc(db, 'resgates', resgateId), { status: 'utilizado', usedAt: serverTimestamp() });
+                alert('✅ Resgate marcado como utilizado.');
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao atualizar o resgate.');
+            }
+        };
 
         // SALVAR CLIENTE (CADASTRO OU EDIÇÃO)
         clientForm.addEventListener('submit', async (e) => {
@@ -507,7 +573,7 @@
                     alert("✅ Cliente atualizado com sucesso!");
                 } else {
                     const batch = writeBatch(db);
-                    batch.set(clientRef, { name, cpf, phone, pts, legacyPts: 0, createdAt: serverTimestamp() });
+                    batch.set(clientRef, { name, cpf, phone, pts, legacyPts: 0, totalPontosAcumulados: pts, createdAt: serverTimestamp() });
                     if (pts > 0) {
                         batch.set(doc(collection(clientRef, "movimentacoes")), {
                             tipo: 'credito', origem: 'Saldo inicial', pontos: pts, pontosDisponiveis: pts,
@@ -591,6 +657,10 @@
             return result;
         }
 
+        function levelFromAccumulated(total) {
+            return total >= 1200 ? 'VIP' : total >= 850 ? 'PLATINUM' : total >= 600 ? 'PRIME' : total >= 450 ? 'FIT' : 'START';
+        }
+
         window.registrarCompra = async (clienteId) => {
             const cliente = clientsData.find(item => item.id === clienteId);
             if (!cliente) return alert('Cliente não encontrado.');
@@ -621,7 +691,8 @@
                     if (!clientSnap.exists()) throw new Error('Cliente não encontrado.');
 
                     const balance = Number(clientSnap.data().pts || 0);
-                    const clientUpdate = { pts: balance + pontosCompra };
+                    const accumulated = Number(clientSnap.data().totalPontosAcumulados ?? balance);
+                    const clientUpdate = { pts: balance + pontosCompra, totalPontosAcumulados: accumulated + pontosCompra };
                     if (clientSnap.data().legacyPts === undefined) clientUpdate.legacyPts = balance;
 
                     transaction.update(clientRef, clientUpdate);
@@ -658,8 +729,9 @@
                         await runTransaction(db, async transaction => {
                             const clientSnap = await transaction.get(clientRef);
                             const balance = Number(clientSnap.data().pts || 0);
-                            if (clientSnap.data().legacyPts === undefined) transaction.update(clientRef, { legacyPts: balance, pts: balance + quantidade });
-                            else transaction.update(clientRef, { pts: balance + quantidade });
+                            const accumulated = Number(clientSnap.data().totalPontosAcumulados ?? balance);
+                            if (clientSnap.data().legacyPts === undefined) transaction.update(clientRef, { legacyPts: balance, pts: balance + quantidade, totalPontosAcumulados: accumulated + quantidade });
+                            else transaction.update(clientRef, { pts: balance + quantidade, totalPontosAcumulados: accumulated + quantidade });
                             transaction.set(doc(collection(clientRef, "movimentacoes")), {
                                 tipo: 'credito', origem: 'Ajuste manual', pontos: quantidade, pontosDisponiveis: quantidade,
                                 createdAt: serverTimestamp(), expiresAt: Timestamp.fromDate(addMonths(new Date(), 6)), status: 'ativo'
@@ -690,7 +762,8 @@
                     const approvedPoints = Number(requestSnap.data().pontos ?? pontos ?? 0);
                     if (!Number.isInteger(approvedPoints) || approvedPoints <= 0) throw new Error('Pontuação inválida.');
                     const balance = Number(clientSnap.data().pts || 0);
-                    const clientUpdate = { pts: balance + approvedPoints };
+                    const accumulated = Number(clientSnap.data().totalPontosAcumulados ?? balance);
+                    const clientUpdate = { pts: balance + approvedPoints, totalPontosAcumulados: accumulated + approvedPoints };
                     if (clientSnap.data().legacyPts === undefined) clientUpdate.legacyPts = balance;
                     transaction.update(clientRef, clientUpdate);
                     transaction.set(movementRef, {
@@ -723,7 +796,7 @@
                     <td data-label="Nome"><strong>${client.nome}</strong></td>
                     <td data-label="CPF">${client.cpf}</td>
                     <td data-label="Telefone">${client.phone}</td>
-                    <td data-label="Pontos"><span class="badge-points">${client.pontos} pts</span></td>
+                    <td data-label="Saldo / Nível"><span class="badge-points">${client.pontos} pts disponíveis</span><br><small>${client.totalAcumulado} acumulados • ${levelFromAccumulated(client.totalAcumulado)}</small></td>
                     <td data-label="Ações">
                         <div class="actions-cell">
                             <button class="btn-action" onclick="editarCliente('${client.id}')">
